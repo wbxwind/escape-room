@@ -278,19 +278,19 @@ export default function EscapeRoom() {
           </button>
         </header>
 
-        <div className="flex-1 flex min-h-0">
-
+        <div className="flex-1 flex flex-col md:flex-row min-h-0">
+          
           {/* Deck Sidebar */}
-          <div className="w-48 bg-black/20 border-r border-white/5 p-4 flex flex-col items-center justify-center">
+          <div className="hidden md:flex w-48 bg-black/20 border-r border-white/5 p-4 flex-col items-center justify-center">
             <div className="w-[120px] h-[180px] bg-indigo-950 rounded-xl border border-indigo-400/30 flex items-center justify-center font-mono text-indigo-400/50 rotate-[-2deg] shadow-lg">
               DECK
             </div>
           </div>
 
           {/* Panorama Area */}
-          <div className="flex-1 bg-gradient-to-b from-[#0A0A0A] to-[#0A0F15] p-8 overflow-auto">
+          <div className="flex-1 bg-gradient-to-b from-[#0A0A0A] to-[#0A0F15] p-4 md:p-8 overflow-auto">
             <h2 className="text-xs font-mono tracking-widest text-cyan-800 mb-6 uppercase">The Panorama</h2>
-            <div className="grid grid-cols-4 gap-6 content-start max-w-5xl mx-auto">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 md:grid-cols-3 gap-4 md:gap-6 content-start max-w-5xl mx-auto">
               {[1, 2, 3, 4, 5, 6, 7, 8].map(slot => {
                 const occupant = items.find(i => i.current_zone === 'PANORAMA' && i.panorama_slot === slot)
                 return (
@@ -303,11 +303,11 @@ export default function EscapeRoom() {
           </div>
 
           {/* Discard & Log */}
-          <DropZone id="zone-DISCARD" className="w-64 bg-black/50 border-l border-white/5 p-4 flex flex-col items-center overflow-hidden">
-            <h2 className="text-xs font-mono tracking-widest text-rose-800 mb-4 uppercase self-start w-full text-center flex-none">Discard</h2>
-            <div className="flex flex-col w-full items-center flex-1 overflow-y-auto pb-10 pr-2">
+          <DropZone id="zone-DISCARD" className="w-full md:w-64 h-48 md:h-auto bg-black/50 border-t md:border-t-0 md:border-l border-white/5 p-4 flex flex-col items-center overflow-hidden flex-none">
+            <h2 className="text-xs font-mono tracking-widest text-rose-800 mb-2 md:mb-4 uppercase self-start w-full text-center flex-none">Discard</h2>
+            <div className="flex flex-row md:flex-col w-full items-center flex-1 overflow-x-auto md:overflow-y-auto overflow-y-hidden md:overflow-x-hidden md:pb-10 pt-4 md:pt-0 pr-4 md:pr-2 pl-16 md:pl-0">
                 {items.filter(i => i.current_zone === 'DISCARD').map((item, idx) => (
-                  <div key={item.state_id} className={`scale-[0.65] origin-top ${idx > 0 ? '-mt-[140px]' : ''} transition-transform hover:translate-y-[-10px]`} style={{ zIndex: idx }}>
+                  <div key={item.state_id} className={`scale-[0.55] md:scale-[0.65] origin-center md:origin-top ${idx > 0 ? 'md:-mt-[140px] -ml-[90px] md:-ml-0' : ''} transition-transform hover:translate-y-[-10px]`} style={{ zIndex: idx }}>
                     <CardBody asset={item} />
                   </div>
                 ))}
@@ -316,7 +316,7 @@ export default function EscapeRoom() {
         </div>
 
         {/* Player Bottom Area */}
-        <DropZone id="zone-PLAYER_AREA" className="flex-none h-72 border-t border-white/10 bg-slate-900/50 p-6 !rounded-none !border-0 flex items-end overflow-x-auto">
+        <DropZone id="zone-PLAYER_AREA" className="flex-none h-48 md:h-72 border-t border-white/10 bg-slate-900/50 p-4 md:p-6 !rounded-none !border-0 flex items-end overflow-x-auto">
           <div className="flex gap-4 items-end mx-auto">
             {items.filter(i => i.current_zone === 'PLAYER_AREA').map(item => (
               <DraggableCard key={item.state_id} asset={item} />
