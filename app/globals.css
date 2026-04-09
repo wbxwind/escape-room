@@ -1,8 +1,13 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #0a0b0f;
+  --foreground: #e0e4ec;
+  --board-grid: rgba(32, 255, 200, 0.04);
+  --board-grid-line: rgba(32, 255, 200, 0.08);
+  --cyan-glow: 0 0 20px rgba(0, 230, 200, 0.3);
+  --amber-glow: 0 0 20px rgba(255, 179, 0, 0.3);
+  --magenta-glow: 0 0 20px rgba(255, 0, 180, 0.3);
 }
 
 @theme inline {
@@ -12,15 +17,155 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
-
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: 'Geist Mono', 'JetBrains Mono', 'Fira Code', monospace;
+  overflow: hidden;
+}
+
+/* === Board Grid Background === */
+.board-grid {
+  background-image:
+    linear-gradient(var(--board-grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--board-grid-line) 1px, transparent 1px);
+  background-size: 40px 40px;
+  background-color: var(--background);
+}
+
+/* === Scanline Overlay === */
+.board-grid::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    0deg,
+    transparent,
+    transparent 2px,
+    rgba(0, 255, 200, 0.015) 2px,
+    rgba(0, 255, 200, 0.015) 4px
+  );
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* === Card Base === */
+.card-base {
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(15, 17, 25, 0.85);
+  transition: box-shadow 0.3s ease, border-color 0.3s ease, transform 0.15s ease;
+}
+
+.card-base:hover {
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+/* === Card Type Variants === */
+.card-panorama {
+  border-color: rgba(0, 230, 200, 0.25);
+  box-shadow: var(--cyan-glow), inset 0 1px 0 rgba(0, 230, 200, 0.1);
+}
+.card-panorama:hover {
+  box-shadow: 0 0 30px rgba(0, 230, 200, 0.45), inset 0 1px 0 rgba(0, 230, 200, 0.2);
+  border-color: rgba(0, 230, 200, 0.4);
+}
+
+.card-item {
+  border-color: rgba(255, 179, 0, 0.25);
+  box-shadow: var(--amber-glow), inset 0 1px 0 rgba(255, 179, 0, 0.1);
+}
+.card-item:hover {
+  box-shadow: 0 0 30px rgba(255, 179, 0, 0.45), inset 0 1px 0 rgba(255, 179, 0, 0.2);
+  border-color: rgba(255, 179, 0, 0.4);
+}
+
+.card-action {
+  border-color: rgba(255, 0, 180, 0.25);
+  box-shadow: var(--magenta-glow), inset 0 1px 0 rgba(255, 0, 180, 0.1);
+}
+.card-action:hover {
+  box-shadow: 0 0 30px rgba(255, 0, 180, 0.45), inset 0 1px 0 rgba(255, 0, 180, 0.2);
+  border-color: rgba(255, 0, 180, 0.4);
+}
+
+/* === Dragging State === */
+.card-dragging {
+  z-index: 999 !important;
+  box-shadow: 0 0 40px rgba(255, 255, 255, 0.2), 0 20px 60px rgba(0, 0, 0, 0.6);
+  transform: scale(1.05);
+  cursor: grabbing;
+}
+
+/* === Pulse Animation for Drop Target === */
+@keyframes pulse-glow {
+  0%, 100% { box-shadow: 0 0 20px rgba(0, 230, 200, 0.3); }
+  50% { box-shadow: 0 0 40px rgba(0, 230, 200, 0.6), 0 0 60px rgba(0, 230, 200, 0.2); }
+}
+
+.drop-target-active {
+  animation: pulse-glow 1.5s ease-in-out infinite;
+  border-color: rgba(0, 230, 200, 0.6) !important;
+}
+
+/* === Fade In Animation === */
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in-up 0.4s ease-out forwards;
+}
+
+/* === Loading Spinner === */
+@keyframes spin-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 2px solid rgba(0, 230, 200, 0.15);
+  border-top-color: rgba(0, 230, 200, 0.8);
+  border-radius: 50%;
+  animation: spin-slow 1s linear infinite;
+}
+
+/* === Toast / Action Feedback === */
+@keyframes slide-in-bottom {
+  from {
+    opacity: 0;
+    transform: translateY(20px) translateX(-50%);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) translateX(-50%);
+  }
+}
+
+.toast {
+  animation: slide-in-bottom 0.3s ease-out forwards;
+}
+
+/* === Custom Scrollbar === */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: rgba(15, 17, 25, 0.5);
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 230, 200, 0.3);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 230, 200, 0.5);
 }
