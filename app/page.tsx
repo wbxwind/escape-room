@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useCallback, useRef } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { supabase } from '@/lib/supabase'
 import {
   DndContext,
@@ -16,500 +16,329 @@ import {
   type DragStartEvent,
 } from '@dnd-kit/core'
 
-/* ------------------------------------------------------------------ */
-/*  Types                                                              */
-/* ------------------------------------------------------------------ */
-interface BoardAsset {
+/** -- Types -- */
+interface GameAsset {
+  id: string
+  room_code: string
+  card_number: string
+  type_string?: string | null
+  type?: string | null
+  title: string
+  content_front: string
+  content_back: string
+  default_zone: string
+}
+
+interface RoomState {
   id: string
   room_code: string
   asset_id: string
-  asset_type: 'panorama' | 'item' | 'action'
-  x_pos: number
-  y_pos: number
-  is_visible: boolean
+  current_zone: 'DECK' | 'PLAYER' | 'PANORAMA' | 'DISCARD'
+  panorama_slot: number | null
   attached_to: string | null
 }
 
-/* ------------------------------------------------------------------ */
-/*  Seed data (auto-inserted if the board is empty)                    */
-/* ------------------------------------------------------------------ */
-const SEED_ASSETS: Omit<BoardAsset, 'id'>[] = [
-  { room_code: 'DEMO-1', asset_id: 'P1', asset_type: 'panorama', x_pos: 80,  y_pos: 100, is_visible: true, attached_to: null },
-  { room_code: 'DEMO-1', asset_id: 'P2', asset_type: 'panorama', x_pos: 560, y_pos: 100, is_visible: true, attached_to: null },
-  { room_code: 'DEMO-1', asset_id: 'I1', asset_type: 'item',     x_pos: 200, y_pos: 480, is_visible: true, attached_to: null },
-  { room_code: 'DEMO-1', asset_id: 'A1', asset_type: 'action',   x_pos: 400, y_pos: 500, is_visible: true, attached_to: null },
-  { room_code: 'DEMO-1', asset_id: 'A2', asset_type: 'action',   x_pos: 550, y_pos: 500, is_visible: true, attached_to: null },
-]
-
-const ASSET_LABELS: Record<string, string> = {
-  P1: 'The Dark Server Room',
-  P2: "The CEO's Desk",
-  I1: 'Rusty Key',
-  A1: 'Inspect',
-  A2: 'Hack',
-}
-
-const ASSET_ICONS: Record<string, string> = {
-  A1: '🔍',
-  A2: '💻',
-  I1: '🗝️',
+export type JoinedAsset = GameAsset & {
+  state_id: string
+  current_zone: 'DECK' | 'PLAYER_AREA' | 'PANORAMA' | 'DISCARD' | 'OBJECTIVE' | string
+  panorama_slot: number | null
+  attached_to: string | null
 }
 
 const ROOM_CODE = 'DEMO-1'
 
-/* ------------------------------------------------------------------ */
-/*  DraggableCard                                                      */
-/* ------------------------------------------------------------------ */
-function DraggableCard({
-  asset,
-  isDraggingThis,
-}: {
-  asset: BoardAsset
-  isDraggingThis: boolean
-}) {
-  const { attributes, listeners, setNodeRef, transform } = useDraggable({
-    id: asset.id,
+/** -- Seed Data -- */
+const DUMMY_ASSETS = [
+  { room_code: ROOM_CODE, card_number: '1', type_string: 'PANORAMA', title: 'Rusty Door', content_front: 'A heavy iron door locked tight.', content_back: 'The door opens to reveal another hallway.', default_zone: 'DECK' },
+  { room_code: ROOM_CODE, card_number: '2', type_string: 'PANORAMA', title: 'Wall Panel', content_front: 'Strange markings on the wall.', content_back: 'Hidden compartment found!', default_zone: 'DECK' },
+  { room_code: ROOM_CODE, card_number: '3', type_string: 'ITEM', title: 'Key', content_front: 'An old rusted key.', content_back: '', default_zone: 'DECK' },
+  { room_code: ROOM_CODE, card_number: '4', type_string: 'ACTION', title: 'Unlock', content_front: 'Try to unlock a door.', content_back: '', default_zone: 'DECK' },
+  { room_code: ROOM_CODE, card_number: '5', type_string: 'WINDOW', title: 'Magnifying Glass', content_front: 'Inspect closely. 🔍', content_back: '', default_zone: 'DECK' },
+]
+
+/** -- Components -- */
+
+function CardBody({ asset }: { asset: JoinedAsset }) {
+  const computedType = (asset.type_string || asset.type || 'UNKNOWN').toUpperCase()
+  const isPanorama = computedType === 'PANORAMA' || computedType === 'SITUATION'
+  const isWindow = computedType === 'WINDOW' || computedType === 'ACTION_WINDOW'
+
+  return (
+    <div className={`card-base ${isPanorama ? 'card-panorama w-[200px] h-[300px]' : 'card-item w-[150px] h-[225px]'} 
+      ${isWindow ? 'bg-cyan-900 border-dashed border-2 border-cyan-400' : 'bg-slate-800'} 
+      rounded-xl flex flex-col p-3 shadow-xl relative overflow-hidden select-none`}>
+      {isWindow && (
+        <div className="absolute inset-4 border border-cyan-400/50 bg-black/50 rounded-lg backdrop-blur-sm pointer-events-none" />
+      )}
+      <div className="z-10 text-[10px] text-zinc-400 font-mono tracking-widest">{computedType.replace('_', ' ')} #{asset.card_number}</div>
+      <div className="z-10 text-lg font-bold text-white mt-1 leading-tight">{asset.title}</div>
+      <div className="z-10 text-xs text-zinc-300 mt-2">{asset.content_front}</div>
+    </div>
+  )
+}
+
+function DraggableCard({ asset }: { asset: JoinedAsset }) {
+  const { attributes, listeners, setNodeRef, transform, isDragging } = useDraggable({
+    id: asset.state_id,
     data: asset,
   })
 
-  const typeClass =
-    asset.asset_type === 'panorama'
-      ? 'card-panorama'
-      : asset.asset_type === 'item'
-        ? 'card-item'
-        : 'card-action'
-
-  const sizeClass =
-    asset.asset_type === 'panorama'
-      ? 'w-[400px] h-[225px]'
-      : asset.asset_type === 'item'
-        ? 'w-[120px] h-[120px]'
-        : 'w-[100px] h-[100px]'
-
+  // We only translate during drag
   const style: React.CSSProperties = {
-    position: 'absolute',
-    left: asset.x_pos,
-    top: asset.y_pos,
-    transform: transform
-      ? `translate(${transform.x}px, ${transform.y}px)`
-      : undefined,
-    opacity: isDraggingThis ? 0.4 : 1,
-    zIndex: isDraggingThis ? 0 : asset.asset_type === 'panorama' ? 1 : 10,
-    cursor: 'grab',
-    touchAction: 'none',
+    transform: transform ? `translate3d(${transform.x}px, ${transform.y}px, 0)` : undefined,
+    zIndex: isDragging ? 50 : 1,
+    opacity: isDragging ? 0.3 : 1,
+    transition: transform ? 'none' : 'transform 0.2s',
   }
 
   return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      className={`card-base ${typeClass} ${sizeClass} rounded-xl select-none animate-fade-in flex flex-col items-center justify-center gap-2 p-3`}
-      {...listeners}
-      {...attributes}
-    >
-      {asset.asset_type === 'panorama' && (
-        <>
-          <div className="text-[10px] uppercase tracking-[0.2em] text-cyan-400/50 font-semibold">
-            Panorama
-          </div>
-          <div className="text-sm font-bold text-cyan-300 text-center leading-tight">
-            {ASSET_LABELS[asset.asset_id] ?? asset.asset_id}
-          </div>
-          <div className="mt-1 w-full h-[1px] bg-gradient-to-r from-transparent via-cyan-500/30 to-transparent" />
-          <div className="text-[10px] text-cyan-500/40 mt-1">
-            [{asset.asset_id}]
-          </div>
-        </>
-      )}
-
-      {asset.asset_type === 'item' && (
-        <>
-          <span className="text-3xl">{ASSET_ICONS[asset.asset_id] ?? '📦'}</span>
-          <div className="text-xs font-bold text-amber-300 text-center">
-            {ASSET_LABELS[asset.asset_id] ?? asset.asset_id}
-          </div>
-          <div className="text-[9px] text-amber-500/50 uppercase tracking-wider">
-            Item
-          </div>
-        </>
-      )}
-
-      {asset.asset_type === 'action' && (
-        <>
-          <span className="text-2xl">{ASSET_ICONS[asset.asset_id] ?? '⚡'}</span>
-          <div className="text-xs font-bold text-fuchsia-300 text-center">
-            {ASSET_LABELS[asset.asset_id] ?? asset.asset_id}
-          </div>
-          <div className="text-[9px] text-fuchsia-500/50 uppercase tracking-wider">
-            Action
-          </div>
-        </>
-      )}
+    <div ref={setNodeRef} style={style} {...attributes} {...listeners} className="cursor-grab hover:scale-[1.02] active:cursor-grabbing">
+      <CardBody asset={asset} />
     </div>
   )
 }
 
-/* ------------------------------------------------------------------ */
-/*  DroppablePanorama (invisible drop-zone overlay)                     */
-/* ------------------------------------------------------------------ */
-function DroppablePanorama({ asset }: { asset: BoardAsset }) {
-  const { setNodeRef, isOver } = useDroppable({
-    id: `drop-${asset.id}`,
-    data: asset,
-  })
-
+function DropZone({ id, label, className, children }: { id: string, label?: string, className?: string, children?: React.ReactNode }) {
+  const { setNodeRef, isOver } = useDroppable({ id })
   return (
-    <div
-      ref={setNodeRef}
-      style={{
-        position: 'absolute',
-        left: asset.x_pos,
-        top: asset.y_pos,
-        width: 400,
-        height: 225,
-        pointerEvents: 'none',
-        zIndex: 0,
-      }}
-      className={`rounded-xl transition-all duration-300 ${
-        isOver ? 'drop-target-active' : ''
-      }`}
-    />
-  )
-}
-
-/* ------------------------------------------------------------------ */
-/*  DragOverlayCard (ghost preview while dragging)                     */
-/* ------------------------------------------------------------------ */
-function DragOverlayCard({ asset }: { asset: BoardAsset }) {
-  const typeClass =
-    asset.asset_type === 'panorama'
-      ? 'card-panorama'
-      : asset.asset_type === 'item'
-        ? 'card-item'
-        : 'card-action'
-
-  const sizeClass =
-    asset.asset_type === 'panorama'
-      ? 'w-[400px] h-[225px]'
-      : asset.asset_type === 'item'
-        ? 'w-[120px] h-[120px]'
-        : 'w-[100px] h-[100px]'
-
-  return (
-    <div
-      className={`card-base ${typeClass} ${sizeClass} card-dragging rounded-xl flex flex-col items-center justify-center gap-2 p-3`}
-    >
-      {asset.asset_type === 'panorama' && (
-        <>
-          <div className="text-[10px] uppercase tracking-[0.2em] text-cyan-400/50 font-semibold">
-            Panorama
-          </div>
-          <div className="text-sm font-bold text-cyan-300 text-center leading-tight">
-            {ASSET_LABELS[asset.asset_id] ?? asset.asset_id}
-          </div>
-          <div className="mt-1 w-full h-[1px] bg-gradient-to-r from-transparent via-cyan-500/30 to-transparent" />
-          <div className="text-[10px] text-cyan-500/40 mt-1">
-            [{asset.asset_id}]
-          </div>
-        </>
-      )}
-
-      {asset.asset_type === 'item' && (
-        <>
-          <span className="text-3xl">{ASSET_ICONS[asset.asset_id] ?? '📦'}</span>
-          <div className="text-xs font-bold text-amber-300 text-center">
-            {ASSET_LABELS[asset.asset_id] ?? asset.asset_id}
-          </div>
-        </>
-      )}
-
-      {asset.asset_type === 'action' && (
-        <>
-          <span className="text-2xl">{ASSET_ICONS[asset.asset_id] ?? '⚡'}</span>
-          <div className="text-xs font-bold text-fuchsia-300 text-center">
-            {ASSET_LABELS[asset.asset_id] ?? asset.asset_id}
-          </div>
-        </>
-      )}
+    <div ref={setNodeRef} className={`relative flex items-center justify-center rounded-xl transition-all ${isOver ? 'ring-2 ring-cyan-400 bg-cyan-950/20' : 'bg-black/20 border border-slate-800'} ${className}`}>
+      {label && !children && <span className="text-xs font-mono text-zinc-600 uppercase">{label}</span>}
+      {children}
     </div>
   )
 }
 
-/* ------------------------------------------------------------------ */
-/*  Toast Component                                                    */
-/* ------------------------------------------------------------------ */
-function Toast({ message, onDismiss }: { message: string; onDismiss: () => void }) {
-  useEffect(() => {
-    const t = setTimeout(onDismiss, 3500)
-    return () => clearTimeout(t)
-  }, [onDismiss])
-
-  return (
-    <div className="toast fixed bottom-8 left-1/2 -translate-x-1/2 z-[1000] bg-gradient-to-r from-cyan-900/90 via-emerald-900/90 to-cyan-900/90 backdrop-blur-xl border border-cyan-500/30 text-cyan-200 px-6 py-3 rounded-xl text-sm font-mono shadow-lg">
-      {message}
-    </div>
-  )
-}
-
-/* ------------------------------------------------------------------ */
-/*  Main Board Component                                               */
-/* ------------------------------------------------------------------ */
+/** -- Main Page -- */
 export default function EscapeRoom() {
-  const [assets, setAssets] = useState<BoardAsset[]>([])
+  const [items, setItems] = useState<JoinedAsset[]>([])
   const [loading, setLoading] = useState(true)
-  const [activeAsset, setActiveAsset] = useState<BoardAsset | null>(null)
   const [toast, setToast] = useState<string | null>(null)
-  const boardRef = useRef<HTMLDivElement>(null)
+  const [activeId, setActiveId] = useState<string | null>(null)
 
-  /* -- Sensors (pointer + touch) ----------------------------------- */
-  const pointerSensor = useSensor(PointerSensor, {
-    activationConstraint: { distance: 5 },
-  })
-  const touchSensor = useSensor(TouchSensor, {
-    activationConstraint: { delay: 150, tolerance: 5 },
-  })
-  const sensors = useSensors(pointerSensor, touchSensor)
+  // Realtime dragging ghost positions from other clients
+  const [externalGhosts, setExternalGhosts] = useState<Record<string, { x: number, y: number, assetId: string }>>({})
 
-  /* -- Fetch + Subscribe ------------------------------------------- */
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
+    useSensor(TouchSensor, { activationConstraint: { delay: 150, tolerance: 5 } })
+  )
+
   useEffect(() => {
     let cancelled = false
 
-    const init = async () => {
-      // Fetch existing assets
-      const { data, error } = await supabase
-        .from('board_assets')
-        .select('*')
-        .eq('room_code', ROOM_CODE)
+    async function init() {
+      try {
+        // Fetch game_assets
+        let { data: assets, error: assetsErr } = await supabase.from('game_assets').select('*').or(`room_code.is.null,room_code.eq.${ROOM_CODE}`)
 
-      if (error) {
-        console.error('Fetch error:', error)
-        setLoading(false)
-        return
-      }
+        if (assetsErr) console.error('Error fetching assets:', assetsErr)
 
-      // Auto-seed if the board is empty
-      if (!data || data.length === 0) {
-        const { data: inserted, error: seedErr } = await supabase
-          .from('board_assets')
-          .insert(SEED_ASSETS)
-          .select()
-
-        if (seedErr) {
-          console.error('Seed error:', seedErr)
-        } else if (!cancelled && inserted) {
-          setAssets(inserted as BoardAsset[])
+        // Seed dummy assets if table is completely empty for demo
+        if (!assets || assets.length === 0) {
+          const { data: insertedAssets } = await supabase.from('game_assets').insert(DUMMY_ASSETS).select()
+          assets = insertedAssets || []
         }
-      } else if (!cancelled) {
-        setAssets(data as BoardAsset[])
-      }
 
-      setLoading(false)
+        if (!cancelled && assets) {
+          let nextPanoramaSlot = 1
+          const localItems: JoinedAsset[] = assets.map(a => {
+            let z = a.default_zone || 'DECK'
+            if (z === 'PLAYER' || z === 'OBJECTIVE') z = 'PLAYER_AREA'
+            
+            let assignedSlot = null
+            if (z === 'PANORAMA') {
+              assignedSlot = nextPanoramaSlot <= 8 ? nextPanoramaSlot : null
+              nextPanoramaSlot++
+            }
+            
+            return {
+              ...a,
+              state_id: a.id,
+              current_zone: z,
+              panorama_slot: assignedSlot,
+              attached_to: null
+            }
+          })
+          
+          setItems(localItems)
+        }
+      } catch (err) {
+        console.error('Init exception:', err)
+      } finally {
+        if (!cancelled) {
+          setLoading(false)
+        }
+      }
     }
 
     init()
 
-    // Realtime subscription
-    const channel = supabase
-      .channel('board-assets-realtime')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'board_assets',
-          filter: `room_code=eq.${ROOM_CODE}`,
-        },
-        (payload) => {
-          if (payload.eventType === 'INSERT') {
-            setAssets((prev) => {
-              if (prev.find((a) => a.id === (payload.new as BoardAsset).id)) return prev
-              return [...prev, payload.new as BoardAsset]
-            })
-          } else if (payload.eventType === 'UPDATE') {
-            setAssets((prev) =>
-              prev.map((a) =>
-                a.id === (payload.new as BoardAsset).id
-                  ? (payload.new as BoardAsset)
-                  : a
-              )
-            )
-          } else if (payload.eventType === 'DELETE') {
-            setAssets((prev) =>
-              prev.filter((a) => a.id !== (payload.old as { id: string }).id)
-            )
-          }
-        }
-      )
+    // Listen to realtime transient dragging broadcasts
+    const cursorChannel = supabase.channel(`cursor-${ROOM_CODE}`)
+      .on('broadcast', { event: 'move' }, (payload) => {
+        const { id, current_zone, panorama_slot } = payload.payload
+        setItems(prev => prev.map(i => i.state_id === id ? { ...i, current_zone, panorama_slot } : i))
+      })
       .subscribe()
 
     return () => {
       cancelled = true
-      supabase.removeChannel(channel)
+      supabase.removeChannel(cursorChannel)
     }
   }, [])
 
-  /* -- Drag Handlers ----------------------------------------------- */
-  const handleDragStart = useCallback(
-    (event: DragStartEvent) => {
-      const draggedAsset = assets.find((a) => a.id === event.active.id)
-      if (draggedAsset) setActiveAsset(draggedAsset)
-    },
-    [assets]
-  )
-
-  const handleDragEnd = useCallback(
-    async (event: DragEndEvent) => {
-      setActiveAsset(null)
-
-      const { active, delta, over } = event
-      const movedAsset = assets.find((a) => a.id === active.id)
-      if (!movedAsset) return
-
-      const newX = Math.max(0, movedAsset.x_pos + Math.round(delta.x))
-      const newY = Math.max(0, movedAsset.y_pos + Math.round(delta.y))
-
-      // Optimistic update
-      setAssets((prev) =>
-        prev.map((a) =>
-          a.id === movedAsset.id ? { ...a, x_pos: newX, y_pos: newY } : a
-        )
-      )
-
-      // Persist to Supabase
-      const { error } = await supabase
-        .from('board_assets')
-        .update({ x_pos: newX, y_pos: newY })
-        .eq('id', movedAsset.id)
-
-      if (error) console.error('Update error:', error)
-
-      // Check if action was dropped on a panorama
-      if (
-        movedAsset.asset_type === 'action' &&
-        over &&
-        String(over.id).startsWith('drop-')
-      ) {
-        const panoramaAsset = assets.find(
-          (a) => `drop-${a.id}` === String(over.id) && a.asset_type === 'panorama'
-        )
-
-        if (panoramaAsset) {
-          setToast(
-            `⚡ ${ASSET_LABELS[movedAsset.asset_id]} → ${ASSET_LABELS[panoramaAsset.asset_id]}`
-          )
-
-          // Fire the /api/interact call
-          try {
-            const res = await fetch('/api/interact', {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                actionId: movedAsset.asset_id,
-                panoramaId: panoramaAsset.asset_id,
-                roomCode: ROOM_CODE,
-              }),
-            })
-            const data = await res.json()
-            if (data.message) {
-              setToast(data.message)
-            }
-          } catch (err) {
-            console.error('Interact error:', err)
-          }
-        }
-      }
-    },
-    [assets]
-  )
-
-  /* -- Panoramas for drop zones ------------------------------------ */
-  const panoramas = assets.filter((a) => a.asset_type === 'panorama')
-
-  /* -- Render ------------------------------------------------------ */
-  if (loading) {
-    return (
-      <main className="h-screen w-screen flex flex-col items-center justify-center gap-4 bg-[#0a0b0f]">
-        <div className="loading-spinner" />
-        <p className="text-sm text-cyan-500/60 font-mono tracking-widest uppercase">
-          Initializing system…
-        </p>
-      </main>
-    )
+  const handleDragStart = (e: DragStartEvent) => {
+    setActiveId(e.active.id as string)
   }
 
+  const handleDragEnd = async (e: DragEndEvent) => {
+    setActiveId(null)
+    const { active, over } = e
+    if (!over) return
+
+    const draggedAsset = items.find(i => i.state_id === active.id)
+    if (!draggedAsset) return
+
+    const overId = String(over.id)
+
+    // Scenario 1: Dropped onto Player hand
+    if (overId === 'zone-PLAYER_AREA') {
+      await moveAsset(draggedAsset.state_id, 'PLAYER_AREA', null)
+      return
+    }
+
+    // Scenario 2: Dropped onto Discard
+    if (overId === 'zone-DISCARD') {
+      await moveAsset(draggedAsset.state_id, 'DISCARD', null)
+      return
+    }
+
+    // Scenario 3: Dropped onto a Panorama Slot (Format: "panorama-X")
+    if (overId.startsWith('panorama-')) {
+      const slotNum = parseInt(overId.replace('panorama-', ''))
+      // Check if occupied to trigger an interaction instead!
+      const occupant = items.find(i => i.current_zone === 'PANORAMA' && i.panorama_slot === slotNum)
+
+      if (occupant) {
+        // Evaluate interaction
+        await triggerInteract(draggedAsset.id, occupant.id)
+      } else {
+        // Move to slot
+        await moveAsset(draggedAsset.state_id, 'PANORAMA', slotNum)
+      }
+    }
+  }
+
+  const moveAsset = async (state_id: string, zone: string, slot: number | null) => {
+    // Optimistic / Real-time channel fallback
+    setItems(prev => prev.map(i => i.state_id === state_id ? { ...i, current_zone: zone as any, panorama_slot: slot } : i))
+
+    // Broadcast via channel
+    supabase.channel(`cursor-${ROOM_CODE}`).send({
+      type: 'broadcast',
+      event: 'move',
+      payload: { id: state_id, current_zone: zone, panorama_slot: slot }
+    })
+  }
+
+  const drawCard = async () => {
+    const deckCards = items.filter(i => i.current_zone === 'DECK')
+    if (deckCards.length === 0) return setToast('Deck is empty!')
+    const toDraw = deckCards[0]
+    await moveAsset(toDraw.state_id, 'PLAYER_AREA', null)
+    setToast(`Drawn ${toDraw.title}`)
+  }
+
+  const triggerInteract = async (actionId: string, panoramaId: string) => {
+    setToast('Resolving interaction...')
+    const res = await fetch('/api/interact', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ actionId, panoramaId, roomCode: ROOM_CODE })
+    })
+    const data = await res.json()
+    if (data.message) setToast(data.message)
+    // Server should ideally have updated the room_state in db, postgres_changes picks it up!
+  }
+
+  if (loading) return <div className="h-screen flex items-center justify-center bg-[#050505] text-cyan-500 font-mono text-sm uppercase">Initializing board...</div>
+
+  const activeAsset = items.find(i => i.state_id === activeId)
+  const deckCount = items.filter(i => i.current_zone === 'DECK').length
+
   return (
-    <DndContext
-      sensors={sensors}
-      collisionDetection={rectIntersection}
-      onDragStart={handleDragStart}
-      onDragEnd={handleDragEnd}
-    >
-      <main className="h-screen w-screen relative overflow-hidden board-grid">
-        {/* Header bar */}
-        <header className="absolute top-0 left-0 right-0 z-50 flex items-center justify-between px-6 py-3 bg-gradient-to-b from-[#0a0b0f] via-[#0a0b0fcc] to-transparent">
-          <div className="flex items-center gap-3">
-            <div className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse" />
-            <h1 className="text-xs font-mono uppercase tracking-[0.25em] text-cyan-400/80">
-              Escape Room — {ROOM_CODE}
-            </h1>
-          </div>
-          <div className="flex items-center gap-4">
-            <span className="text-[10px] text-cyan-600/50 font-mono">
-              {assets.length} assets loaded
-            </span>
-            <div className="flex gap-1">
-              <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-              <div className="w-1.5 h-1.5 rounded-full bg-emerald-500/40" />
-              <div className="w-1.5 h-1.5 rounded-full bg-emerald-500/20" />
-            </div>
-          </div>
+    <DndContext sensors={sensors} collisionDetection={rectIntersection} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+      <main className="h-screen w-screen bg-[#0A0A0A] flex flex-col text-slate-200 overflow-hidden relative font-sans">
+
+        {/* Header */}
+        <header className="flex-none p-4 border-b border-white/10 flex justify-between items-center bg-black/40">
+          <h1 className="font-bold text-xl tracking-wide">BACK STORIES engine <span className="text-cyan-500 text-sm ml-2">[{ROOM_CODE}]</span></h1>
+          <button className="px-4 py-2 bg-slate-800 text-white font-semibold rounded hover:bg-slate-700 transition" onClick={drawCard}>
+            Draw Card ({deckCount})
+          </button>
         </header>
 
-        {/* Board area */}
-        <div ref={boardRef} className="absolute inset-0" id="game-board">
-          {/* Drop zones (invisible overlays on panoramas) */}
-          {panoramas.map((p) => (
-            <DroppablePanorama key={`drop-${p.id}`} asset={p} />
-          ))}
+        <div className="flex-1 flex min-h-0">
 
-          {/* All draggable cards */}
-          {assets
-            .filter((a) => a.is_visible)
-            .map((asset) => (
-              <DraggableCard
-                key={asset.id}
-                asset={asset}
-                isDraggingThis={activeAsset?.id === asset.id}
-              />
-            ))}
+          {/* Deck Sidebar */}
+          <div className="w-48 bg-black/20 border-r border-white/5 p-4 flex flex-col items-center justify-center">
+            <div className="w-[120px] h-[180px] bg-indigo-950 rounded-xl border border-indigo-400/30 flex items-center justify-center font-mono text-indigo-400/50 rotate-[-2deg] shadow-lg">
+              DECK
+            </div>
+          </div>
+
+          {/* Panorama Area */}
+          <div className="flex-1 bg-gradient-to-b from-[#0A0A0A] to-[#0A0F15] p-8 overflow-auto">
+            <h2 className="text-xs font-mono tracking-widest text-cyan-800 mb-6 uppercase">The Panorama</h2>
+            <div className="grid grid-cols-4 gap-6 content-start max-w-5xl mx-auto">
+              {[1, 2, 3, 4, 5, 6, 7, 8].map(slot => {
+                const occupant = items.find(i => i.current_zone === 'PANORAMA' && i.panorama_slot === slot)
+                return (
+                  <DropZone key={slot} id={`panorama-${slot}`} label={`[ SLOT ${slot} ]`} className="h-[250px] aspect-[2/3]">
+                    {occupant && <DraggableCard asset={occupant} />}
+                  </DropZone>
+                )
+              })}
+            </div>
+          </div>
+
+          {/* Discard & Log */}
+          <DropZone id="zone-DISCARD" className="w-64 bg-black/50 border-l border-white/5 p-4 flex flex-col items-center overflow-hidden">
+            <h2 className="text-xs font-mono tracking-widest text-rose-800 mb-4 uppercase self-start w-full text-center flex-none">Discard</h2>
+            <div className="flex flex-col w-full items-center flex-1 overflow-y-auto pb-10 pr-2">
+                {items.filter(i => i.current_zone === 'DISCARD').map((item, idx) => (
+                  <div key={item.state_id} className={`scale-[0.65] origin-top ${idx > 0 ? '-mt-[140px]' : ''} transition-transform hover:translate-y-[-10px]`} style={{ zIndex: idx }}>
+                    <CardBody asset={item} />
+                  </div>
+                ))}
+            </div>
+          </DropZone>
         </div>
 
-        {/* Drag overlay (the ghost that follows the cursor) */}
+        {/* Player Bottom Area */}
+        <DropZone id="zone-PLAYER_AREA" className="flex-none h-72 border-t border-white/10 bg-slate-900/50 p-6 !rounded-none !border-0 flex items-end overflow-x-auto">
+          <div className="flex gap-4 items-end mx-auto">
+            {items.filter(i => i.current_zone === 'PLAYER_AREA').map(item => (
+              <DraggableCard key={item.state_id} asset={item} />
+            ))}
+            {items.filter(i => i.current_zone === 'PLAYER_AREA').length === 0 && (
+              <div className="h-48 flex items-center justify-center text-slate-500 font-mono text-sm w-full">
+                Your hand is empty. Draw cards to begin.
+              </div>
+            )}
+          </div>
+        </DropZone>
+
+        {/* Drag overlay ghost */}
         <DragOverlay dropAnimation={null}>
-          {activeAsset ? <DragOverlayCard asset={activeAsset} /> : null}
+          {activeAsset ? <div className="opacity-80 rotate-[3deg] scale-105 transition-transform"><CardBody asset={activeAsset} /></div> : null}
         </DragOverlay>
 
-        {/* Bottom legend */}
-        <footer className="absolute bottom-0 left-0 right-0 z-50 flex items-center justify-center gap-8 py-3 bg-gradient-to-t from-[#0a0b0f] via-[#0a0b0fcc] to-transparent">
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded border border-cyan-500/40 bg-cyan-500/10" />
-            <span className="text-[10px] text-cyan-400/60 font-mono uppercase">Panorama</span>
+        {toast && (
+          <div className="fixed bottom-6 top-auto left-1/2 -translate-x-1/2 bg-cyan-950/80 backdrop-blur-md text-cyan-200 px-6 py-3 rounded-full border border-cyan-500/30 text-sm font-medium animate-in slide-in-from-bottom-5 fade-in z-[100]">
+            {toast}
           </div>
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded border border-amber-500/40 bg-amber-500/10" />
-            <span className="text-[10px] text-amber-400/60 font-mono uppercase">Item</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded border border-fuchsia-500/40 bg-fuchsia-500/10" />
-            <span className="text-[10px] text-fuchsia-400/60 font-mono uppercase">Action</span>
-          </div>
-          <span className="text-[9px] text-white/20 font-mono ml-4">
-            Drop an Action onto a Panorama to interact
-          </span>
-        </footer>
-
-        {/* Toast */}
-        {toast && <Toast message={toast} onDismiss={() => setToast(null)} />}
+        )}
       </main>
     </DndContext>
   )
