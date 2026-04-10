@@ -110,22 +110,51 @@ function DropZone({ id, label, className, children }: { id: string, label?: stri
   )
 }
 
-function VoiceHUD() {
+const MicIcon = ({ className }: { className?: string }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" x2="12" y1="19" y2="22"/></svg>
+)
+const MicOffIcon = ({ className }: { className?: string }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><line x1="2" x2="22" y1="2" y2="22"/><path d="M18.89 13.23A7.12 7.12 0 0 0 19 12v-2"/><path d="M5 10v2a7 7 0 0 0 12 5"/><path d="M15 9.34V5a3 3 0 0 0-5.68-1.33"/><path d="M9 9v3a3 3 0 0 0 5.12 2.12"/><line x1="12" x2="12" y1="19" y2="22"/></svg>
+)
+const AudioIcon = ({ className }: { className?: string }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M3 14h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7a9 9 0 0 1 18 0v7a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3"/></svg>
+)
+const AudioOffIcon = ({ className }: { className?: string }) => (
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M3 14h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-7a9 9 0 0 1 18 0v7a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3"/><line x1="2" x2="22" y1="2" y2="22"/></svg>
+)
+
+function VoiceHUD({ isMicMuted, setIsMicMuted, isDeafened, setIsDeafened, cachedId }: any) {
   const participants = useParticipants()
   const { localParticipant } = useLocalParticipant()
   
-  const isMicEnabled = localParticipant?.isMicrophoneEnabled ?? false
+  // Enforce consistent mute state across unmounts/lobby jumps natively
+  useEffect(() => {
+    if (localParticipant) {
+      if (localParticipant.isMicrophoneEnabled === isMicMuted) {
+        localParticipant.setMicrophoneEnabled(!isMicMuted).catch(console.error)
+      }
+    }
+  }, [localParticipant, isMicMuted])
 
   const handleMuteToggle = async () => {
+    const nextVal = !isMicMuted
+    setIsMicMuted(nextVal)
     if (localParticipant) {
-      await localParticipant.setMicrophoneEnabled(!isMicEnabled)
+      await localParticipant.setMicrophoneEnabled(!nextVal).catch(console.error)
     }
+    await supabase.from('room_participants').update({ is_muted: nextVal }).eq('user_id', cachedId)
+  }
+
+  const handleDeafenToggle = async () => {
+    const nextVal = !isDeafened
+    setIsDeafened(nextVal)
+    await supabase.from('room_participants').update({ is_deafened: nextVal }).eq('user_id', cachedId)
   }
 
   return (
     <div className="absolute bottom-[20rem] md:bottom-28 right-4 bg-black/80 border border-slate-700/50 p-4 rounded-xl shadow-2xl z-50 min-w-[200px] backdrop-blur-md">
       <h3 className="text-[10px] font-mono tracking-widest text-emerald-500/80 mb-3 uppercase flex items-center gap-2">
-        <div className={`w-2 h-2 rounded-full ${isMicEnabled ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'}`}/>
+        <div className={`w-2 h-2 rounded-full ${!isMicMuted && !isDeafened ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'}`}/>
         Voice Comms
       </h3>
       <div className="flex flex-col gap-3">
@@ -134,23 +163,29 @@ function VoiceHUD() {
            return (
            <div key={p.identity} className="flex gap-3 items-center">
              <div className="relative">
-               <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${p.isSpeaking ? 'text-white ring-2' : 'text-slate-400'} ${isMe ? (p.isSpeaking ? 'bg-blue-600 ring-blue-400' : 'bg-slate-800') : (p.isSpeaking ? 'bg-emerald-600 ring-emerald-400' : 'bg-slate-800')}`}>
+               <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${p.isSpeaking && !isDeafened ? 'text-white ring-2' : 'text-slate-400'} ${isMe ? (p.isSpeaking && !isDeafened ? 'bg-blue-600 ring-blue-400' : 'bg-slate-800') : (p.isSpeaking && !isDeafened ? 'bg-emerald-600 ring-emerald-400' : 'bg-slate-800')}`}>
                  {p.name?.substring(0, 2).toUpperCase() || '??'}
                </div>
                <div className="absolute -bottom-1 -right-1 bg-black rounded-full p-0.5">
                   <TrackMutedIndicator trackRef={{ participant: p, source: Track.Source.Microphone }} show={'muted'} className="!w-3 !h-3" />
                </div>
              </div>
-             <span className={`text-sm font-semibold pl-1 ${p.isSpeaking ? 'text-white' : 'text-slate-400'} ${isMe ? 'opacity-80' : ''}`}>{p.name || p.identity} {isMe ? '(You)' : ''}</span>
+             <span className={`text-sm font-semibold pl-1 ${p.isSpeaking && !isDeafened ? 'text-white' : 'text-slate-400'} ${isMe ? 'opacity-80' : ''}`}>{p.name || p.identity} {isMe ? '(You)' : ''}</span>
            </div>
         )})}
         {participants.length === 0 && (
           <div className="text-xs text-slate-500 italic">Waiting for players...</div>
         )}
       </div>
-      <button onClick={handleMuteToggle} className="mt-4 w-full bg-slate-800 hover:bg-slate-700 transition-colors py-2 rounded text-xs font-semibold text-slate-200">
-        {isMicEnabled ? 'Mute Microphone' : 'Unmute Microphone'}
-      </button>
+      
+      <div className="mt-4 flex gap-2 w-full">
+        <button onClick={handleMuteToggle} className={`flex-1 transition-colors py-2 rounded flex items-center justify-center ${isMicMuted ? 'bg-rose-900/50 hover:bg-rose-900 border border-rose-500/30' : 'bg-slate-800 hover:bg-slate-700'}`}>
+          {isMicMuted ? <MicOffIcon className="w-4 h-4 text-rose-300" /> : <MicIcon className="w-4 h-4 text-slate-200" />}
+        </button>
+        <button onClick={handleDeafenToggle} className={`flex-1 transition-colors py-2 rounded flex items-center justify-center ${isDeafened ? 'bg-rose-900/50 hover:bg-rose-900 border border-rose-500/30' : 'bg-slate-800 hover:bg-slate-700'}`}>
+          {isDeafened ? <AudioOffIcon className="w-4 h-4 text-rose-300" /> : <AudioIcon className="w-4 h-4 text-slate-200" />}
+        </button>
+      </div>
     </div>
   )
 }
@@ -167,6 +202,10 @@ export default function EscapeRoom() {
   const [roomCode, setRoomCode] = useState<string | null>(null)
   const [availableRooms, setAvailableRooms] = useState<string[]>([])
   const [roomParticipants, setRoomParticipants] = useState<Record<string, any[]>>({})
+
+  const [isMicMuted, setIsMicMuted] = useState(false)
+  const [isDeafened, setIsDeafened] = useState(false)
+  const [cachedId, setCachedId] = useState<string | null>(localStorage.getItem('escape-room-id'))
 
   // Realtime dragging ghost positions from other clients
   const [externalGhosts, setExternalGhosts] = useState<Record<string, { x: number, y: number, assetId: string }>>({})
@@ -226,21 +265,28 @@ export default function EscapeRoom() {
     async function init() {
       try {
         // Init Local Player Session
-        let cachedId = localStorage.getItem('escape-room-id')
-        let cachedName = localStorage.getItem('escape-room-name')
-        if (!cachedId || !cachedName) {
-           cachedId = crypto.randomUUID()
-           cachedName = `Player-${Math.floor(Math.random() * 1000)}`
-           localStorage.setItem('escape-room-id', cachedId)
-           localStorage.setItem('escape-room-name', cachedName)
+        let cid = localStorage.getItem('escape-room-id')
+        let cname = localStorage.getItem('escape-room-name')
+        if (!cid || !cname) {
+           cid = crypto.randomUUID()
+           cname = `Player-${Math.floor(Math.random() * 1000)}`
+           localStorage.setItem('escape-room-id', cid)
+           localStorage.setItem('escape-room-name', cname)
         }
+        setCachedId(cid)
+
+        // Load persisted audio state
+        const savedMute = localStorage.getItem('is-mic-muted') === 'true'
+        const savedDeafen = localStorage.getItem('is-deafened') === 'true'
+        setIsMicMuted(savedMute)
+        setIsDeafened(savedDeafen)
 
         handleUnload = () => {
           fetch('/api/leave-room', {
             method: 'POST',
             keepalive: true,
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ userId: cachedId })
+            body: JSON.stringify({ userId: cid })
           }).catch(console.error)
         }
         window.addEventListener('beforeunload', handleUnload)
@@ -249,7 +295,7 @@ export default function EscapeRoom() {
         try {
            const res = await fetch('/api/get-voice-token', {
               method: 'POST',
-              body: JSON.stringify({ roomCode, participantId: cachedId, participantName: cachedName })
+              body: JSON.stringify({ roomCode, participantId: cid, participantName: cname })
            })
            const data = await res.json()
            if (data.token) {
@@ -261,11 +307,11 @@ export default function EscapeRoom() {
         }
 
         // Register presence deeply into Supabase participants
-        const { data: presence } = await supabase.from('room_participants').select('*').eq('user_id', cachedId).maybeSingle()
+        const { data: presence } = await supabase.from('room_participants').select('*').eq('user_id', cid).maybeSingle()
         if (!presence) {
-           await supabase.from('room_participants').insert({ user_id: cachedId, username: cachedName, room_code: roomCode })
+           await supabase.from('room_participants').insert({ user_id: cid, username: cname, room_code: roomCode, is_muted: savedMute, is_deafened: savedDeafen })
         } else {
-           await supabase.from('room_participants').update({ last_seen: new Date().toISOString(), room_code: roomCode }).eq('user_id', cachedId)
+           await supabase.from('room_participants').update({ last_seen: new Date().toISOString(), room_code: roomCode, is_muted: savedMute, is_deafened: savedDeafen }).eq('user_id', cid)
         }
 
         // Fetch game_assets
@@ -448,9 +494,13 @@ export default function EscapeRoom() {
                    {roomParticipants[r] && roomParticipants[r].length > 0 && (
                      <div className="flex flex-col pl-3 mt-1 ml-1 border-l-2 border-slate-800 space-y-1">
                         {roomParticipants[r].map(p => (
-                           <div key={p.user_id} className="flex items-center gap-2 text-xs font-medium text-slate-400 py-0.5">
+                           <div key={p.user_id} className="flex items-center gap-2 text-xs font-medium text-slate-400 py-0.5 group">
                              <div className="w-1.5 h-1.5 rounded-full bg-emerald-700"></div>
-                             <span className="truncate w-full">{p.username}</span>
+                             <span className="truncate flex-1">{p.username}</span>
+                             <div className="flex gap-1 items-center opacity-40 group-hover:opacity-100 transition-opacity">
+                               {p.is_muted && <MicOffIcon className="w-2.5 h-2.5 text-slate-500" />}
+                               {p.is_deafened && <AudioOffIcon className="w-2.5 h-2.5 text-slate-500" />}
+                             </div>
                            </div>
                         ))}
                      </div>
@@ -521,8 +571,14 @@ export default function EscapeRoom() {
     return (
       <LiveKitRoom serverUrl={liveKitUrl} token={liveKitToken} connect={true} audio={true}>
          {viewBase}
-         <VoiceHUD />
-         <RoomAudioRenderer />
+         <VoiceHUD 
+            isMicMuted={isMicMuted} 
+            setIsMicMuted={(val: boolean) => { setIsMicMuted(val); localStorage.setItem('is-mic-muted', String(val)); }}
+            isDeafened={isDeafened}
+            setIsDeafened={(val: boolean) => { setIsDeafened(val); localStorage.setItem('is-deafened', String(val)); }}
+            cachedId={cachedId}
+          />
+         {!isDeafened && <RoomAudioRenderer />}
       </LiveKitRoom>
     )
   }
