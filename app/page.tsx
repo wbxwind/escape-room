@@ -16,7 +16,7 @@ import {
   type DragStartEvent,
 } from '@dnd-kit/core'
 
-import { LiveKitRoom, RoomAudioRenderer, useParticipants, TrackMutedIndicator } from '@livekit/components-react'
+import { LiveKitRoom, RoomAudioRenderer, useParticipants, TrackMutedIndicator, useTrackToggle, useLocalParticipant } from '@livekit/components-react'
 import { Track } from 'livekit-client'
 import '@livekit/components-styles'
 
@@ -49,15 +49,13 @@ export type JoinedAsset = GameAsset & {
   attached_to: string | null
 }
 
-const ROOM_CODE = 'DEMO-1'
-
 /** -- Seed Data -- */
 const DUMMY_ASSETS = [
-  { room_code: ROOM_CODE, card_number: '1', type_string: 'PANORAMA', title: 'Rusty Door', content_front: 'A heavy iron door locked tight.', content_back: 'The door opens to reveal another hallway.', default_zone: 'DECK' },
-  { room_code: ROOM_CODE, card_number: '2', type_string: 'PANORAMA', title: 'Wall Panel', content_front: 'Strange markings on the wall.', content_back: 'Hidden compartment found!', default_zone: 'DECK' },
-  { room_code: ROOM_CODE, card_number: '3', type_string: 'ITEM', title: 'Key', content_front: 'An old rusted key.', content_back: '', default_zone: 'DECK' },
-  { room_code: ROOM_CODE, card_number: '4', type_string: 'ACTION', title: 'Unlock', content_front: 'Try to unlock a door.', content_back: '', default_zone: 'DECK' },
-  { room_code: ROOM_CODE, card_number: '5', type_string: 'WINDOW', title: 'Magnifying Glass', content_front: 'Inspect closely. 🔍', content_back: '', default_zone: 'DECK' },
+  { card_number: '1', type_string: 'PANORAMA', title: 'Rusty Door', content_front: 'A heavy iron door locked tight.', content_back: 'The door opens to reveal another hallway.', default_zone: 'DECK' },
+  { card_number: '2', type_string: 'PANORAMA', title: 'Wall Panel', content_front: 'Strange markings on the wall.', content_back: 'Hidden compartment found!', default_zone: 'DECK' },
+  { card_number: '3', type_string: 'ITEM', title: 'Key', content_front: 'An old rusted key.', content_back: '', default_zone: 'DECK' },
+  { card_number: '4', type_string: 'ACTION', title: 'Unlock', content_front: 'Try to unlock a door.', content_back: '', default_zone: 'DECK' },
+  { card_number: '5', type_string: 'WINDOW', title: 'Magnifying Glass', content_front: 'Inspect closely. 🔍', content_back: '', default_zone: 'DECK' },
 ]
 
 /** -- Components -- */
@@ -114,31 +112,45 @@ function DropZone({ id, label, className, children }: { id: string, label?: stri
 
 function VoiceHUD() {
   const participants = useParticipants()
+  const { localParticipant } = useLocalParticipant()
+  
+  const isMicEnabled = localParticipant?.isMicrophoneEnabled ?? false
+
+  const handleMuteToggle = async () => {
+    if (localParticipant) {
+      await localParticipant.setMicrophoneEnabled(!isMicEnabled)
+    }
+  }
 
   return (
-    <div className="absolute top-20 right-4 bg-black/80 border border-slate-700/50 p-4 rounded-xl shadow-2xl z-50 min-w-[200px] backdrop-blur-md">
+    <div className="absolute bottom-[20rem] md:bottom-28 right-4 bg-black/80 border border-slate-700/50 p-4 rounded-xl shadow-2xl z-50 min-w-[200px] backdrop-blur-md">
       <h3 className="text-[10px] font-mono tracking-widest text-emerald-500/80 mb-3 uppercase flex items-center gap-2">
-        <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"/>
+        <div className={`w-2 h-2 rounded-full ${isMicEnabled ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'}`}/>
         Voice Comms
       </h3>
       <div className="flex flex-col gap-3">
-        {participants.map(p => (
+        {participants.map(p => {
+           const isMe = p.identity === localParticipant?.identity
+           return (
            <div key={p.identity} className="flex gap-3 items-center">
              <div className="relative">
-               <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${p.isSpeaking ? 'bg-emerald-600 text-white ring-2 ring-emerald-400' : 'bg-slate-800 text-slate-400'}`}>
+               <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${p.isSpeaking ? 'text-white ring-2' : 'text-slate-400'} ${isMe ? (p.isSpeaking ? 'bg-blue-600 ring-blue-400' : 'bg-slate-800') : (p.isSpeaking ? 'bg-emerald-600 ring-emerald-400' : 'bg-slate-800')}`}>
                  {p.name?.substring(0, 2).toUpperCase() || '??'}
                </div>
                <div className="absolute -bottom-1 -right-1 bg-black rounded-full p-0.5">
                   <TrackMutedIndicator trackRef={{ participant: p, source: Track.Source.Microphone }} show={'muted'} className="!w-3 !h-3" />
                </div>
              </div>
-             <span className={`text-sm font-semibold pl-1 ${p.isSpeaking ? 'text-white' : 'text-slate-400'}`}>{p.name || p.identity}</span>
+             <span className={`text-sm font-semibold pl-1 ${p.isSpeaking ? 'text-white' : 'text-slate-400'} ${isMe ? 'opacity-80' : ''}`}>{p.name || p.identity} {isMe ? '(You)' : ''}</span>
            </div>
-        ))}
+        )})}
         {participants.length === 0 && (
           <div className="text-xs text-slate-500 italic">Waiting for players...</div>
         )}
       </div>
+      <button onClick={handleMuteToggle} className="mt-4 w-full bg-slate-800 hover:bg-slate-700 transition-colors py-2 rounded text-xs font-semibold text-slate-200">
+        {isMicEnabled ? 'Mute Microphone' : 'Unmute Microphone'}
+      </button>
     </div>
   )
 }
@@ -151,6 +163,9 @@ export default function EscapeRoom() {
   const [activeId, setActiveId] = useState<string | null>(null)
   const [liveKitToken, setLiveKitToken] = useState<string | null>(null)
   const [liveKitUrl, setLiveKitUrl] = useState<string | null>(null)
+  
+  const [roomCode, setRoomCode] = useState<string | null>(null)
+  const [availableRooms, setAvailableRooms] = useState<string[]>([])
 
   // Realtime dragging ghost positions from other clients
   const [externalGhosts, setExternalGhosts] = useState<Record<string, { x: number, y: number, assetId: string }>>({})
@@ -161,7 +176,23 @@ export default function EscapeRoom() {
   )
 
   useEffect(() => {
+    async function loadRooms() {
+      const { data } = await supabase.from('room_state').select('room_code')
+      if (data) {
+        const codes = Array.from(new Set(data.map(r => r.room_code).filter(Boolean)))
+        setAvailableRooms(codes)
+        if (codes.length > 0 && !roomCode) {
+          setRoomCode(codes[0])
+        }
+      }
+    }
+    loadRooms()
+  }, [])
+
+  useEffect(() => {
+    if (!roomCode) return
     let cancelled = false
+    setLoading(true)
 
     async function init() {
       try {
@@ -179,7 +210,7 @@ export default function EscapeRoom() {
         try {
            const res = await fetch('/api/get-voice-token', {
               method: 'POST',
-              body: JSON.stringify({ roomCode: ROOM_CODE, participantId: cachedId, participantName: cachedName })
+              body: JSON.stringify({ roomCode, participantId: cachedId, participantName: cachedName })
            })
            const data = await res.json()
            if (data.token) {
@@ -193,19 +224,20 @@ export default function EscapeRoom() {
         // Register presence deeply into Supabase participants
         const { data: presence } = await supabase.from('room_participants').select('*').eq('user_id', cachedId).maybeSingle()
         if (!presence) {
-           await supabase.from('room_participants').insert({ user_id: cachedId, username: cachedName, room_code: ROOM_CODE })
+           await supabase.from('room_participants').insert({ user_id: cachedId, username: cachedName, room_code: roomCode })
         } else {
-           await supabase.from('room_participants').update({ last_seen: new Date().toISOString() }).eq('user_id', cachedId)
+           await supabase.from('room_participants').update({ last_seen: new Date().toISOString(), room_code: roomCode }).eq('user_id', cachedId)
         }
 
         // Fetch game_assets
-        let { data: assets, error: assetsErr } = await supabase.from('game_assets').select('*').or(`room_code.is.null,room_code.eq.${ROOM_CODE}`)
+        let { data: assets, error: assetsErr } = await supabase.from('game_assets').select('*').or(`room_code.is.null,room_code.eq.${roomCode}`)
 
         if (assetsErr) console.error('Error fetching assets:', assetsErr)
 
         // Seed dummy assets if table is completely empty for demo
         if (!assets || assets.length === 0) {
-          const { data: insertedAssets } = await supabase.from('game_assets').insert(DUMMY_ASSETS).select()
+          const seed = DUMMY_ASSETS.map(d => ({ ...d, room_code: roomCode }))
+          const { data: insertedAssets } = await supabase.from('game_assets').insert(seed).select()
           assets = insertedAssets || []
         }
 
@@ -244,7 +276,7 @@ export default function EscapeRoom() {
     init()
 
     // Listen to realtime transient dragging broadcasts
-    const cursorChannel = supabase.channel(`cursor-${ROOM_CODE}`)
+    const cursorChannel = supabase.channel(`cursor-${roomCode}`)
       .on('broadcast', { event: 'move' }, (payload) => {
         const { id, current_zone, panorama_slot } = payload.payload
         setItems(prev => prev.map(i => i.state_id === id ? { ...i, current_zone, panorama_slot } : i))
@@ -255,7 +287,7 @@ export default function EscapeRoom() {
       cancelled = true
       supabase.removeChannel(cursorChannel)
     }
-  }, [])
+  }, [roomCode])
 
   const handleDragStart = (e: DragStartEvent) => {
     setActiveId(e.active.id as string)
@@ -324,7 +356,7 @@ export default function EscapeRoom() {
     const res = await fetch('/api/interact', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ actionId, panoramaId, roomCode: ROOM_CODE })
+      body: JSON.stringify({ actionId, panoramaId, roomCode })
     })
     const data = await res.json()
     if (data.message) setToast(data.message)
@@ -342,7 +374,14 @@ export default function EscapeRoom() {
 
         {/* Header */}
         <header className="flex-none p-4 border-b border-white/10 flex justify-between items-center bg-black/40">
-          <h1 className="font-bold text-xl tracking-wide">BACK STORIES engine <span className="text-cyan-500 text-sm ml-2">[{ROOM_CODE}]</span></h1>
+          <div className="flex items-center gap-4">
+            <h1 className="font-bold text-xl tracking-wide">BACK STORIES engine</h1>
+            {/* Mobile Select */}
+            <select className="md:hidden bg-slate-900 border border-slate-700 text-sm px-2 py-1 rounded" value={roomCode || ''} onChange={(e) => setRoomCode(e.target.value)}>
+               {availableRooms.map(r => <option key={r} value={r}>{r}</option>)}
+            </select>
+            <span className="hidden md:inline-block text-cyan-500 text-sm font-mono bg-cyan-900/30 px-2 py-1 border border-cyan-500/20 rounded-md">[{roomCode}]</span>
+          </div>
           <button className="px-4 py-2 bg-slate-800 text-white font-semibold rounded hover:bg-slate-700 transition" onClick={drawCard}>
             Draw Card ({deckCount})
           </button>
@@ -350,11 +389,19 @@ export default function EscapeRoom() {
 
         <div className="flex-1 flex flex-col md:flex-row min-h-0">
           
-          {/* Deck Sidebar */}
-          <div className="hidden md:flex w-48 bg-black/20 border-r border-white/5 p-4 flex-col items-center justify-center">
-            <div className="w-[120px] h-[180px] bg-indigo-950 rounded-xl border border-indigo-400/30 flex items-center justify-center font-mono text-indigo-400/50 rotate-[-2deg] shadow-lg">
-              DECK
-            </div>
+          {/* Room Navigator Sidebar */}
+          <div className="hidden md:flex w-48 bg-[#0a0a0a] border-r border-white/5 p-4 flex-col items-start gap-2 overflow-y-auto">
+            <h3 className="text-xs font-mono tracking-widest text-slate-500 mb-2 uppercase border-b border-slate-800 pb-2 w-full">Lobby Rooms</h3>
+            {availableRooms.map(r => (
+               <button 
+                  key={r} 
+                  onClick={() => setRoomCode(r)}
+                  className={`w-full text-left px-3 py-2 rounded text-sm font-semibold transition ${r === roomCode ? 'bg-cyan-950 border border-cyan-400/30 text-cyan-200' : 'bg-slate-900 hover:bg-slate-800 text-slate-400'}`}
+                >
+                 Row: {r}
+               </button>
+            ))}
+            {availableRooms.length === 0 && <span className="text-xs text-slate-600 italic">No rooms loaded...</span>}
           </div>
 
           {/* Panorama Area */}
