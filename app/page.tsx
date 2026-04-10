@@ -16,6 +16,10 @@ import {
   type DragStartEvent,
 } from '@dnd-kit/core'
 
+import { LiveKitRoom, useParticipants, TrackMutedIndicator } from '@livekit/components-react'
+import { Track } from 'livekit-client'
+import '@livekit/components-styles'
+
 /** -- Types -- */
 interface GameAsset {
   id: string
@@ -108,12 +112,45 @@ function DropZone({ id, label, className, children }: { id: string, label?: stri
   )
 }
 
+function VoiceHUD() {
+  const participants = useParticipants()
+
+  return (
+    <div className="absolute top-20 right-4 bg-black/80 border border-slate-700/50 p-4 rounded-xl shadow-2xl z-50 min-w-[200px] backdrop-blur-md">
+      <h3 className="text-[10px] font-mono tracking-widest text-emerald-500/80 mb-3 uppercase flex items-center gap-2">
+        <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"/>
+        Voice Comms
+      </h3>
+      <div className="flex flex-col gap-3">
+        {participants.map(p => (
+           <div key={p.identity} className="flex gap-3 items-center">
+             <div className="relative">
+               <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${p.isSpeaking ? 'bg-emerald-600 text-white ring-2 ring-emerald-400' : 'bg-slate-800 text-slate-400'}`}>
+                 {p.name?.substring(0, 2).toUpperCase() || '??'}
+               </div>
+               <div className="absolute -bottom-1 -right-1 bg-black rounded-full p-0.5">
+                  <TrackMutedIndicator trackRef={{ participant: p, source: Track.Source.Microphone }} show={'muted'} className="!w-3 !h-3" />
+               </div>
+             </div>
+             <span className={`text-sm font-semibold pl-1 ${p.isSpeaking ? 'text-white' : 'text-slate-400'}`}>{p.name || p.identity}</span>
+           </div>
+        ))}
+        {participants.length === 0 && (
+          <div className="text-xs text-slate-500 italic">Waiting for players...</div>
+        )}
+      </div>
+    </div>
+  )
+}
+
 /** -- Main Page -- */
 export default function EscapeRoom() {
   const [items, setItems] = useState<JoinedAsset[]>([])
   const [loading, setLoading] = useState(true)
   const [toast, setToast] = useState<string | null>(null)
   const [activeId, setActiveId] = useState<string | null>(null)
+  const [liveKitToken, setLiveKitToken] = useState<string | null>(null)
+  const [liveKitUrl, setLiveKitUrl] = useState<string | null>(null)
 
   // Realtime dragging ghost positions from other clients
   const [externalGhosts, setExternalGhosts] = useState<Record<string, { x: number, y: number, assetId: string }>>({})
@@ -128,6 +165,39 @@ export default function EscapeRoom() {
 
     async function init() {
       try {
+        // Init Local Player Session
+        let cachedId = localStorage.getItem('escape-room-id')
+        let cachedName = localStorage.getItem('escape-room-name')
+        if (!cachedId || !cachedName) {
+           cachedId = crypto.randomUUID()
+           cachedName = `Player-${Math.floor(Math.random() * 1000)}`
+           localStorage.setItem('escape-room-id', cachedId)
+           localStorage.setItem('escape-room-name', cachedName)
+        }
+
+        // Connect to LiveKit via Token Generation
+        try {
+           const res = await fetch('/api/get-voice-token', {
+              method: 'POST',
+              body: JSON.stringify({ roomCode: ROOM_CODE, participantId: cachedId, participantName: cachedName })
+           })
+           const data = await res.json()
+           if (data.token) {
+              setLiveKitToken(data.token)
+              setLiveKitUrl(process.env.NEXT_PUBLIC_LIVEKIT_URL || null)
+           }
+        } catch (e) {
+           console.error("LiveKit connection errored:", e)
+        }
+
+        // Register presence deeply into Supabase participants
+        const { data: presence } = await supabase.from('room_participants').select('*').eq('user_id', cachedId).maybeSingle()
+        if (!presence) {
+           await supabase.from('room_participants').insert({ user_id: cachedId, username: cachedName, room_code: ROOM_CODE })
+        } else {
+           await supabase.from('room_participants').update({ last_seen: new Date().toISOString() }).eq('user_id', cachedId)
+        }
+
         // Fetch game_assets
         let { data: assets, error: assetsErr } = await supabase.from('game_assets').select('*').or(`room_code.is.null,room_code.eq.${ROOM_CODE}`)
 
@@ -266,7 +336,7 @@ export default function EscapeRoom() {
   const activeAsset = items.find(i => i.state_id === activeId)
   const deckCount = items.filter(i => i.current_zone === 'DECK').length
 
-  return (
+  const viewBase = (
     <DndContext sensors={sensors} collisionDetection={rectIntersection} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
       <main className="h-screen w-screen bg-[#0A0A0A] flex flex-col text-slate-200 overflow-hidden relative font-sans">
 
@@ -342,4 +412,15 @@ export default function EscapeRoom() {
       </main>
     </DndContext>
   )
+
+  if (liveKitToken && liveKitUrl) {
+    return (
+      <LiveKitRoom serverUrl={liveKitUrl} token={liveKitToken} connect={true} audio={true}>
+         {viewBase}
+         <VoiceHUD />
+      </LiveKitRoom>
+    )
+  }
+
+  return viewBase
 }
