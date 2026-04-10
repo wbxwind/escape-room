@@ -49,32 +49,37 @@ export type JoinedAsset = GameAsset & {
   attached_to: string | null
 }
 
-/** -- Seed Data -- */
-const DUMMY_ASSETS = [
-  { card_number: '1', type_string: 'PANORAMA', title: 'Rusty Door', content_front: 'A heavy iron door locked tight.', content_back: 'The door opens to reveal another hallway.', default_zone: 'DECK' },
-  { card_number: '2', type_string: 'PANORAMA', title: 'Wall Panel', content_front: 'Strange markings on the wall.', content_back: 'Hidden compartment found!', default_zone: 'DECK' },
-  { card_number: '3', type_string: 'ITEM', title: 'Key', content_front: 'An old rusted key.', content_back: '', default_zone: 'DECK' },
-  { card_number: '4', type_string: 'ACTION', title: 'Unlock', content_front: 'Try to unlock a door.', content_back: '', default_zone: 'DECK' },
-  { card_number: '5', type_string: 'WINDOW', title: 'Magnifying Glass', content_front: 'Inspect closely. 🔍', content_back: '', default_zone: 'DECK' },
-]
+
 
 /** -- Components -- */
 
 function CardBody({ asset }: { asset: JoinedAsset }) {
   const computedType = (asset.type_string || asset.type || 'UNKNOWN').toUpperCase()
   const isPanorama = computedType === 'PANORAMA' || computedType === 'SITUATION'
+  const isAction = computedType === 'ACTION'
   const isWindow = computedType === 'WINDOW' || computedType === 'ACTION_WINDOW'
+  const isCharacter = computedType === 'CHARACTER'
+  const isStatus = computedType === 'STATUS'
+  const isStory = computedType === 'STORY'
+
+  let borderColor = 'border-white/10'
+  if (isCharacter) borderColor = 'border-rose-600'
+  if (isStatus) borderColor = 'border-orange-500'
+  if (isStory) borderColor = 'border-purple-500'
+  if (isPanorama) borderColor = 'border-blue-500'
+  if (isAction || isWindow) borderColor = 'border-cyan-400'
 
   return (
-    <div className={`card-base ${isPanorama ? 'card-panorama w-[200px] h-[300px]' : 'card-item w-[150px] h-[225px]'} 
-      ${isWindow ? 'bg-cyan-900 border-dashed border-2 border-cyan-400' : 'bg-slate-800'} 
-      rounded-xl flex flex-col p-3 shadow-xl relative overflow-hidden select-none`}>
-      {isWindow && (
-        <div className="absolute inset-4 border border-cyan-400/50 bg-black/50 rounded-lg backdrop-blur-sm pointer-events-none" />
+    <div className={`card-base w-[140px] h-[210px] md:w-[150px] md:h-[225px] flex-none border-[3px] border-solid
+      ${isWindow ? 'bg-cyan-950/80 border-dashed' : 'bg-slate-900/90'} 
+      ${borderColor}
+      rounded-xl flex flex-col p-2 md:p-3 shadow-2xl relative overflow-hidden select-none`}>
+      {(isWindow || isAction) && (
+        <div className={`absolute inset-0 bg-cyan-400/5 pointer-events-none`} />
       )}
       <div className="z-10 text-[10px] text-zinc-400 font-mono tracking-widest">{computedType.replace('_', ' ')} #{asset.card_number}</div>
-      <div className="z-10 text-lg font-bold text-white mt-1 leading-tight">{asset.title}</div>
-      <div className="z-10 text-xs text-zinc-300 mt-2">{asset.content_front}</div>
+      <div className="z-10 text-lg font-bold text-white mt-1 leading-tight line-clamp-2">{asset.title}</div>
+      <div className="z-10 text-xs text-zinc-300 mt-2 line-clamp-4">{asset.content_front}</div>
     </div>
   )
 }
@@ -88,13 +93,12 @@ function DraggableCard({ asset }: { asset: JoinedAsset }) {
   // We only translate during drag
   const style: React.CSSProperties = {
     transform: transform ? `translate3d(${transform.x}px, ${transform.y}px, 0)` : undefined,
-    zIndex: isDragging ? 50 : 1,
+    zIndex: isDragging ? 100 : 1,
     opacity: isDragging ? 0.3 : 1,
-    transition: transform ? 'none' : 'transform 0.2s',
   }
 
   return (
-    <div ref={setNodeRef} style={style} {...attributes} {...listeners} className="cursor-grab hover:scale-[1.02] active:cursor-grabbing">
+    <div ref={setNodeRef} style={style} {...attributes} {...listeners} className="cursor-grab active:cursor-grabbing">
       <CardBody asset={asset} />
     </div>
   )
@@ -154,41 +158,37 @@ function VoiceHUD({ isMicMuted, setIsMicMuted, isDeafened, setIsDeafened, cached
   }
 
   return (
-    <div className="absolute bottom-[20rem] md:bottom-28 right-4 bg-black/80 border border-slate-700/50 p-4 rounded-xl shadow-2xl z-50 min-w-[200px] backdrop-blur-md">
-      <h3 className="text-[10px] font-mono tracking-widest text-emerald-500/80 mb-3 uppercase flex items-center gap-2">
+    <div className="mt-auto w-full bg-black/40 border-t border-white/5 p-4 flex-col gap-3 flex">
+      <h3 className="text-[10px] font-mono tracking-widest text-emerald-500/80 mb-2 uppercase flex items-center gap-2">
         <div className={`w-2 h-2 rounded-full ${!isMicMuted && !isDeafened ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'}`}/>
         Voice Comms
       </h3>
-      <div className="flex flex-col gap-3">
+      <div className="flex flex-col gap-2 max-h-[120px] overflow-y-auto pr-1 custom-scrollbar">
         {participants.map(p => {
            const isMe = p.identity === localParticipant?.identity
-           // Only show speaking highlight if NOT deafened and NOT muted
            const isSpeakingVisible = p.isSpeaking && !isDeafened && (isMe ? !isMicMuted : true);
            
            return (
-           <div key={p.identity} className="flex gap-3 items-center">
-             <div className="relative">
-               <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${isSpeakingVisible ? 'text-white ring-2' : 'text-slate-400'} ${isMe ? (isSpeakingVisible ? 'bg-blue-600 ring-blue-400' : 'bg-slate-800') : (isSpeakingVisible ? 'bg-emerald-600 ring-emerald-400' : 'bg-slate-800')}`}>
+           <div key={p.identity} className="flex gap-2 items-center">
+             <div className="relative flex-none">
+               <div className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold ${isSpeakingVisible ? 'text-white ring-1' : 'text-zinc-500'} ${isMe ? (isSpeakingVisible ? 'bg-blue-600 ring-blue-400' : 'bg-zinc-800') : (isSpeakingVisible ? 'bg-emerald-600 ring-emerald-400' : 'bg-zinc-800')}`}>
                  {p.name?.substring(0, 2).toUpperCase() || '??'}
                </div>
-               <div className="absolute -bottom-1 -right-1 bg-black rounded-full p-0.5">
-                  <TrackMutedIndicator trackRef={{ participant: p, source: Track.Source.Microphone }} show={'muted'} className="!w-3 !h-3" />
+               <div className="absolute -bottom-0.5 -right-0.5 bg-black rounded-full p-0.5">
+                  <TrackMutedIndicator trackRef={{ participant: p, source: Track.Source.Microphone }} show={'muted'} className="!w-2 !h-2" />
                </div>
              </div>
-             <span className={`text-sm font-semibold pl-1 ${isSpeakingVisible ? 'text-white' : 'text-slate-400'} ${isMe ? 'opacity-80' : ''}`}>{p.name || p.identity} {isMe ? '(You)' : ''}</span>
+             <span className={`text-[11px] font-medium truncate flex-1 ${isSpeakingVisible ? 'text-white' : 'text-zinc-400'}`}>{p.name || p.identity} {isMe ? '(You)' : ''}</span>
            </div>
         )})}
-        {participants.length === 0 && (
-          <div className="text-xs text-slate-500 italic">Waiting for players...</div>
-        )}
       </div>
       
-      <div className="mt-4 flex gap-2 w-full">
-        <button onClick={handleMuteToggle} className={`flex-1 transition-colors py-2 rounded flex items-center justify-center ${isMicMuted ? 'bg-rose-900/50 hover:bg-rose-900 border border-rose-500/30' : 'bg-slate-800 hover:bg-slate-700'}`}>
-          {isMicMuted ? <MicOffIcon className="w-4 h-4 text-rose-300" /> : <MicIcon className="w-4 h-4 text-slate-200" />}
+      <div className="mt-2 flex gap-2 w-full">
+        <button onClick={handleMuteToggle} className={`flex-1 transition-colors py-1.5 rounded flex items-center justify-center ${isMicMuted ? 'bg-rose-900/40 hover:bg-rose-900/60 border border-rose-500/20' : 'bg-white/5 hover:bg-white/10 border border-white/5'}`}>
+          {isMicMuted ? <MicOffIcon className="w-3 h-3 text-rose-300" /> : <MicIcon className="w-3 h-3 text-zinc-300" />}
         </button>
-        <button onClick={handleDeafenToggle} className={`flex-1 transition-colors py-2 rounded flex items-center justify-center ${isDeafened ? 'bg-rose-900/50 hover:bg-rose-900 border border-rose-500/30' : 'bg-slate-800 hover:bg-slate-700'}`}>
-          {isDeafened ? <AudioOffIcon className="w-4 h-4 text-rose-300" /> : <AudioIcon className="w-4 h-4 text-slate-200" />}
+        <button onClick={handleDeafenToggle} className={`flex-1 transition-colors py-1.5 rounded flex items-center justify-center ${isDeafened ? 'bg-rose-900/40 hover:bg-rose-900/60 border border-rose-500/20' : 'bg-white/5 hover:bg-white/10 border border-white/5'}`}>
+          {isDeafened ? <AudioOffIcon className="w-3 h-3 text-rose-300" /> : <AudioIcon className="w-3 h-3 text-zinc-300" />}
         </button>
       </div>
     </div>
@@ -324,13 +324,6 @@ export default function EscapeRoom() {
 
         if (assetsErr) console.error('Error fetching assets:', assetsErr)
 
-        // Seed dummy assets if table is completely empty for demo
-        if (!assets || assets.length === 0) {
-          const seed = DUMMY_ASSETS.map(d => ({ ...d, room_code: roomCode }))
-          const { data: insertedAssets } = await supabase.from('game_assets').insert(seed).select()
-          assets = insertedAssets || []
-        }
-
         if (!cancelled && assets) {
           let nextPanoramaSlot = 1
           const localItems: JoinedAsset[] = assets.map(a => {
@@ -389,10 +382,9 @@ export default function EscapeRoom() {
     const { active, over } = e
     if (!over) return
 
+    const overId = String(over.id)
     const draggedAsset = items.find(i => i.state_id === active.id)
     if (!draggedAsset) return
-
-    const overId = String(over.id)
 
     // Scenario 1: Dropped onto Player hand
     if (overId === 'zone-PLAYER_AREA') {
@@ -409,16 +401,80 @@ export default function EscapeRoom() {
     // Scenario 3: Dropped onto a Panorama Slot (Format: "panorama-X")
     if (overId.startsWith('panorama-')) {
       const slotNum = parseInt(overId.replace('panorama-', ''))
-      // Check if occupied to trigger an interaction instead!
       const occupant = items.find(i => i.current_zone === 'PANORAMA' && i.panorama_slot === slotNum)
+      const computedType = (draggedAsset.type_string || draggedAsset.type || '').toUpperCase()
+      const isPanorama = computedType === 'PANORAMA' || computedType === 'SITUATION'
 
       if (occupant) {
-        // Evaluate interaction
-        await triggerInteract(draggedAsset.id, occupant.id)
-      } else {
-        // Move to slot
+        const occupantType = (occupant.type_string || occupant.type || '').toUpperCase()
+        const isOccupantPanorama = occupantType === 'PANORAMA' || occupantType === 'SITUATION'
+
+        if (isOccupantPanorama && !isPanorama) {
+          // Check if there is already an action card attached to this panorama
+          const existingAction = items.find(i => i.current_zone === 'PANORAMA' && i.panorama_slot === slotNum && i.state_id !== occupant.state_id)
+          
+          if (!existingAction) {
+            // Move action to this slot (stacking) and trigger interaction
+            await moveAsset(draggedAsset.state_id, 'PANORAMA', slotNum)
+            await triggerInteract(draggedAsset.id, occupant.id)
+          } else {
+            await moveAsset(draggedAsset.state_id, 'PLAYER_AREA', null)
+            setToast('Only one action card can be on a Panorama at a time.')
+          }
+        } else {
+          // Both are panoramas or occupant is an action -> Trigger interaction normally
+          await triggerInteract(draggedAsset.id, occupant.id)
+        }
+      } else if (isPanorama && !occupant) {
+        // Drop Panorama in empty slot -> Move
         await moveAsset(draggedAsset.state_id, 'PANORAMA', slotNum)
+      } else if (!isPanorama && !occupant) {
+        // Drop non-panorama in empty slot -> Return to player area (invalid)
+        await moveAsset(draggedAsset.state_id, 'PLAYER_AREA', null)
+        setToast('Place action cards directly onto Panoramas to use them.')
       }
+      return
+    }
+
+    // Scenario 4: Dropped onto Character Slot
+    if (overId === 'character-slot') {
+      const computedType = (draggedAsset.type_string || draggedAsset.type || '').toUpperCase()
+      const isCharacter = computedType === 'CHARACTER'
+      const isStatus = computedType === 'STATUS'
+      
+      const occupant = items.find(i => i.current_zone === 'CHARACTER_ZONE')
+      
+      if (isCharacter && !occupant) {
+        await moveAsset(draggedAsset.state_id, 'CHARACTER_ZONE', 99)
+      } else if (isStatus && occupant) {
+        const existingStatus = items.find(i => i.current_zone === 'CHARACTER_ZONE' && (i.type_string === 'STATUS' || i.type === 'STATUS'))
+        if (!existingStatus) {
+           await moveAsset(draggedAsset.state_id, 'CHARACTER_ZONE', 99)
+           await triggerInteract(draggedAsset.id, occupant.id)
+        } else {
+           await moveAsset(draggedAsset.state_id, 'PLAYER_AREA', null)
+           setToast('Only one status card allowed per character.')
+        }
+      } else if (isCharacter && occupant) {
+         setToast('Character slot is already occupied.')
+         await moveAsset(draggedAsset.state_id, 'PLAYER_AREA', null)
+      } else {
+         setToast('Only Character cards or Status effects can go here.')
+         await moveAsset(draggedAsset.state_id, 'PLAYER_AREA', null)
+      }
+      return
+    }
+
+    // Scenario 5: Dropped onto Story Slot
+    if (overId === 'story-slot') {
+      const computedType = (draggedAsset.type_string || draggedAsset.type || '').toUpperCase()
+      if (computedType === 'STORY') {
+        await moveAsset(draggedAsset.state_id, 'STORY_ZONE', 100)
+      } else {
+        setToast('Only Story cards can go here.')
+        await moveAsset(draggedAsset.state_id, 'PLAYER_AREA', null)
+      }
+      return
     }
   }
 
@@ -461,6 +517,22 @@ export default function EscapeRoom() {
 
   const viewBase = (
     <DndContext sensors={sensors} collisionDetection={rectIntersection} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+<style jsx global>{`
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 10px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.2);
+  }
+`}</style>
       <main className="h-screen w-screen bg-[#0A0A0A] flex flex-col text-slate-200 overflow-hidden relative font-sans">
 
         {/* Header */}
@@ -482,81 +554,148 @@ export default function EscapeRoom() {
           </button>
         </header>
 
-        <div className="flex-1 flex flex-col md:flex-row min-h-0">
+        <div className="flex-1 flex flex-row min-h-0 overflow-hidden">
           
-          {/* Room Navigator Sidebar */}
-          <div className="hidden md:flex w-48 bg-[#0a0a0a] border-r border-white/5 p-4 flex-col items-start gap-4 overflow-y-auto">
-            <h3 className="text-xs font-mono tracking-widest text-slate-500 border-b border-slate-800 pb-2 w-full uppercase">Lobby Rooms</h3>
-            <div className="flex flex-col gap-2 w-full">
-              {availableRooms.map(r => (
-                 <div key={r} className="w-full flex flex-col gap-1">
-                   <button 
-                      onClick={() => setRoomCode(r)}
-                      className={`w-full text-left px-3 py-2 rounded text-sm font-semibold transition ${r === roomCode ? 'bg-cyan-950 border border-cyan-400/30 text-cyan-200' : 'bg-slate-900 hover:bg-slate-800 text-slate-400'}`}
-                    >
-                     Room: {r}
-                   </button>
-                   {roomParticipants[r] && roomParticipants[r].length > 0 && (
-                     <div className="flex flex-col pl-3 mt-1 ml-1 border-l-2 border-slate-800 space-y-1">
-                        {roomParticipants[r].map(p => (
-                           <div key={p.user_id} className="flex items-center gap-2 text-xs font-medium text-slate-400 py-0.5 group">
-                             <div className="w-1.5 h-1.5 rounded-full bg-emerald-700"></div>
-                             <span className="truncate flex-1">{p.username}</span>
-                             <div className="flex gap-1 items-center opacity-40 group-hover:opacity-100 transition-opacity">
-                               {p.is_muted && <MicOffIcon className="w-2.5 h-2.5 text-slate-500" />}
-                               {p.is_deafened && <AudioOffIcon className="w-2.5 h-2.5 text-slate-500" />}
+          {/* Room Navigator Sidebar (Left) */}
+          <div className="flex w-32 md:w-56 bg-[#0a0a0a] border-r border-white/5 flex-col items-start gap-4 overflow-hidden flex-none">
+            <div className="p-4 flex-1 flex flex-col w-full overflow-y-auto custom-scrollbar">
+              <h3 className="text-[10px] font-mono tracking-widest text-slate-500 border-b border-white/5 pb-2 w-full uppercase mb-4">Lobby Rooms</h3>
+              <div className="flex flex-col gap-2 w-full">
+                {availableRooms.map(r => (
+                   <div key={r} className="w-full flex flex-col gap-1">
+                     <button 
+                        onClick={() => setRoomCode(r)}
+                        className={`w-full text-left px-2 md:px-3 py-2 rounded text-[11px] md:text-sm font-semibold transition ${r === roomCode ? 'bg-cyan-950 border border-cyan-400/30 text-cyan-200' : 'bg-white/5 hover:bg-white/10 text-slate-400'}`}
+                      >
+                       Room: {r}
+                     </button>
+                     {roomParticipants[r] && roomParticipants[r].length > 0 && (
+                       <div className="flex flex-col pl-2 mt-1 ml-1 border-l border-white/10 space-y-1">
+                          {roomParticipants[r].map(p => (
+                             <div key={p.user_id} className="flex items-center gap-2 text-[10px] font-medium text-slate-500 py-0.5 group">
+                               <div className="w-1 h-1 rounded-full bg-emerald-700"></div>
+                               <span className="truncate flex-1">{p.username}</span>
+                               <div className="flex gap-1 items-center opacity-40 group-hover:opacity-100 transition-opacity">
+                                 {p.is_muted && <MicOffIcon className="w-2 h-2 text-slate-600" />}
+                                 {p.is_deafened && <AudioOffIcon className="w-2 h-2 text-slate-600" />}
+                               </div>
                              </div>
-                           </div>
-                        ))}
-                     </div>
-                   )}
-                 </div>
-              ))}
-              {availableRooms.length === 0 && <span className="text-xs text-slate-600 italic">No rooms loaded...</span>}
+                          ))}
+                       </div>
+                     )}
+                   </div>
+                ))}
+              </div>
             </div>
+            
+            <VoiceHUD 
+              isMicMuted={isMicMuted} 
+              setIsMicMuted={(val: boolean) => { setIsMicMuted(val); localStorage.setItem('is-mic-muted', String(val)); }}
+              isDeafened={isDeafened}
+              setIsDeafened={(val: boolean) => { setIsDeafened(val); localStorage.setItem('is-deafened', String(val)); }}
+              cachedId={cachedId}
+            />
           </div>
 
-          {/* Panorama Area */}
-          <div className="flex-1 bg-gradient-to-b from-[#0A0A0A] to-[#0A0F15] p-4 md:p-8 overflow-auto">
-            <h2 className="text-xs font-mono tracking-widest text-cyan-800 mb-6 uppercase">The Panorama</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 md:grid-cols-3 gap-4 md:gap-6 content-start max-w-5xl mx-auto">
-              {[1, 2, 3, 4, 5, 6, 7, 8].map(slot => {
-                const occupant = items.find(i => i.current_zone === 'PANORAMA' && i.panorama_slot === slot)
-                return (
-                  <DropZone key={slot} id={`panorama-${slot}`} label={`[ SLOT ${slot} ]`} className="h-[250px] aspect-[2/3]">
-                    {occupant && <DraggableCard asset={occupant} />}
-                  </DropZone>
-                )
-              })}
+          {/* Center Content: Board & Hand */}
+          <div className="flex-1 flex flex-col min-w-[500px] bg-gradient-to-b from-[#0A0A0A] to-[#0D0D0D] overflow-hidden">
+            {/* Board Area */}
+            <div className="flex-1 p-4 md:p-8 flex items-center justify-center overflow-hidden">
+              <div className="flex items-center gap-16">
+                
+                {/* Fixed Character & Story Column */}
+                <div className="flex flex-col gap-8 flex-none">
+                  {/* Character Slot */}
+                  <div>
+                    <h2 className="text-[9px] font-mono tracking-[0.2em] text-cyan-800/60 mb-3 uppercase text-center">Character</h2>
+                    <DropZone id="character-slot" label="[ CHAR ]" className="w-[140px] h-[210px] md:w-[150px] md:h-[225px]">
+                      <div className="relative w-full h-full flex items-center justify-center">
+                        {(() => {
+                          const charItems = items.filter(i => i.current_zone === 'CHARACTER_ZONE')
+                          const sortedChar = [...charItems].sort((a, b) => {
+                            const isStatusA = (a.type_string || a.type || '').toUpperCase() === 'STATUS'
+                            return isStatusA ? -1 : 1
+                          })
+                          return sortedChar.map((item, idx) => {
+                            const isPeek = activeId === item.state_id
+                            return (
+                              <div key={item.state_id} className={`${(idx > 0 && !isPeek) ? 'absolute top-[28px] left-0 right-0' : (isPeek ? 'relative z-50' : 'relative')}`}>
+                                <DraggableCard asset={item} />
+                              </div>
+                            )
+                          })
+                        })()}
+                      </div>
+                    </DropZone>
+                  </div>
+                  {/* Story Slot */}
+                  <div>
+                    <h2 className="text-[9px] font-mono tracking-[0.2em] text-cyan-800/60 mb-3 uppercase text-center">Story</h2>
+                    <DropZone id="story-slot" label="[ STORY ]" className="w-[140px] h-[210px] md:w-[150px] md:h-[225px]">
+                      {items.find(i => i.current_zone === 'STORY_ZONE') && (
+                        <DraggableCard asset={items.find(i => i.current_zone === 'STORY_ZONE')!} />
+                      )}
+                    </DropZone>
+                  </div>
+                </div>
+
+                {/* Main Panorama Grid */}
+                <div className="flex flex-col items-center">
+                  <h2 className="text-[10px] font-mono tracking-widest text-cyan-800 mb-6 uppercase flex-none">The Panorama</h2>
+                  <div className="grid grid-cols-4 grid-rows-2 gap-4 md:gap-8 w-fit h-fit">
+                    {[1, 2, 3, 4, 5, 6, 7, 8].map(slot => {
+                      const slotItems = items.filter(i => i.current_zone === 'PANORAMA' && i.panorama_slot === slot)
+                      const sortedItems = [...slotItems].sort((a, b) => {
+                        const typeA = (a.type_string || a.type || '').toUpperCase()
+                        const isPanA = typeA === 'PANORAMA' || typeA === 'SITUATION'
+                        return isPanA ? -1 : 1
+                      })
+
+                      return (
+                        <DropZone key={slot} id={`panorama-${slot}`} label={`[ ${slot} ]`} className="w-[140px] h-[210px] md:w-[150px] md:h-[225px]">
+                          <div className="relative w-full h-full flex items-center justify-center">
+                            {sortedItems.map((item, idx) => (
+                              <div key={item.state_id} className={`${idx > 0 ? 'absolute top-[28px] left-0 right-0 z-10 shadow-2xl' : 'relative'}`}>
+                                <DraggableCard asset={item} />
+                              </div>
+                            ))}
+                          </div>
+                        </DropZone>
+                      )
+                    })}
+                  </div>
+                </div>
+
+              </div>
             </div>
+
+            {/* Player Hand Area */}
+            <DropZone id="zone-PLAYER_AREA" className="flex-none h-48 md:h-64 border-t border-white/5 bg-black/40 p-4 md:p-6 !rounded-none !border-0 flex items-center overflow-x-auto custom-scrollbar">
+              <div className="flex gap-4 items-center mx-auto px-4">
+                {items.filter(i => i.current_zone === 'PLAYER_AREA').map(item => (
+                  <DraggableCard key={item.state_id} asset={item} />
+                ))}
+                {items.filter(i => i.current_zone === 'PLAYER_AREA').length === 0 && (
+                  <div className="text-slate-600 font-mono text-[10px] uppercase tracking-widest whitespace-nowrap">
+                    Your hand is empty. Draw cards to begin.
+                  </div>
+                )}
+              </div>
+            </DropZone>
           </div>
 
-          {/* Discard & Log */}
-          <DropZone id="zone-DISCARD" className="w-full md:w-64 h-48 md:h-auto bg-black/50 border-t md:border-t-0 md:border-l border-white/5 p-4 flex flex-col items-center overflow-hidden flex-none">
-            <h2 className="text-xs font-mono tracking-widest text-rose-800 mb-2 md:mb-4 uppercase self-start w-full text-center flex-none">Discard</h2>
-            <div className="flex flex-row md:flex-col w-full items-center flex-1 overflow-x-auto md:overflow-y-auto overflow-y-hidden md:overflow-x-hidden md:pb-10 pt-4 md:pt-0 pr-4 md:pr-2 pl-16 md:pl-0">
+          {/* Discard Sidebar (Right) */}
+          <DropZone id="zone-DISCARD" className="flex-none w-32 md:w-48 bg-[#0a0a0a] border-l border-white/5 p-4 flex flex-col items-center overflow-hidden">
+            <h2 className="text-[10px] font-mono tracking-widest text-rose-800 mb-6 uppercase flex-none">Discard</h2>
+            <div className="flex flex-col w-full items-center flex-1 overflow-y-auto custom-scrollbar pt-4 px-2 pb-20">
                 {items.filter(i => i.current_zone === 'DISCARD').map((item, idx) => (
-                  <div key={item.state_id} className={`scale-[0.55] md:scale-[0.65] origin-center md:origin-top ${idx > 0 ? 'md:-mt-[140px] -ml-[90px] md:-ml-0' : ''} transition-transform hover:translate-y-[-10px]`} style={{ zIndex: idx }}>
-                    <CardBody asset={item} />
+                  <div key={item.state_id} className={`transition-transform hover:translate-y-[-10px] ${idx > 0 ? '-mt-[160px]' : ''}`} style={{ zIndex: idx }}>
+                    <DraggableCard asset={item} />
                   </div>
                 ))}
             </div>
           </DropZone>
         </div>
-
-        {/* Player Bottom Area */}
-        <DropZone id="zone-PLAYER_AREA" className="flex-none h-48 md:h-72 border-t border-white/10 bg-slate-900/50 p-4 md:p-6 !rounded-none !border-0 flex items-end overflow-x-auto">
-          <div className="flex gap-4 items-end mx-auto">
-            {items.filter(i => i.current_zone === 'PLAYER_AREA').map(item => (
-              <DraggableCard key={item.state_id} asset={item} />
-            ))}
-            {items.filter(i => i.current_zone === 'PLAYER_AREA').length === 0 && (
-              <div className="h-48 flex items-center justify-center text-slate-500 font-mono text-sm w-full">
-                Your hand is empty. Draw cards to begin.
-              </div>
-            )}
-          </div>
-        </DropZone>
 
         {/* Drag overlay ghost */}
         <DragOverlay dropAnimation={null}>
@@ -576,13 +715,6 @@ export default function EscapeRoom() {
     return (
       <LiveKitRoom serverUrl={liveKitUrl} token={liveKitToken} connect={true} audio={!isMicMuted}>
          {viewBase}
-         <VoiceHUD 
-            isMicMuted={isMicMuted} 
-            setIsMicMuted={(val: boolean) => { setIsMicMuted(val); localStorage.setItem('is-mic-muted', String(val)); }}
-            isDeafened={isDeafened}
-            setIsDeafened={(val: boolean) => { setIsDeafened(val); localStorage.setItem('is-deafened', String(val)); }}
-            cachedId={cachedId}
-          />
          {!isDeafened && <RoomAudioRenderer />}
       </LiveKitRoom>
     )

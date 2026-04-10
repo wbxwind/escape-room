@@ -52,13 +52,11 @@ body {
 /* === Card Base === */
 .card-base {
   backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
   background: rgba(15, 17, 25, 0.85);
-  transition: box-shadow 0.3s ease, border-color 0.3s ease, transform 0.15s ease;
 }
 
 .card-base:hover {
-  border-color: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.25);
 }
 
 /* === Card Type Variants === */
