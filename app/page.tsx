@@ -16,7 +16,7 @@ import {
   type DragStartEvent,
 } from '@dnd-kit/core'
 
-import { LiveKitRoom, useParticipants, TrackMutedIndicator } from '@livekit/components-react'
+import { LiveKitRoom, RoomAudioRenderer, useParticipants, TrackMutedIndicator } from '@livekit/components-react'
 import { Track } from 'livekit-client'
 import '@livekit/components-styles'
 
@@ -418,6 +418,7 @@ export default function EscapeRoom() {
       <LiveKitRoom serverUrl={liveKitUrl} token={liveKitToken} connect={true} audio={true}>
          {viewBase}
          <VoiceHUD />
+         <RoomAudioRenderer />
       </LiveKitRoom>
     )
   }
