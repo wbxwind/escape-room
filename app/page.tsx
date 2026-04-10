@@ -205,7 +205,7 @@ export default function EscapeRoom() {
 
   const [isMicMuted, setIsMicMuted] = useState(false)
   const [isDeafened, setIsDeafened] = useState(false)
-  const [cachedId, setCachedId] = useState<string | null>(localStorage.getItem('escape-room-id'))
+  const [cachedId, setCachedId] = useState<string | null>(null)
 
   // Realtime dragging ghost positions from other clients
   const [externalGhosts, setExternalGhosts] = useState<Record<string, { x: number, y: number, assetId: string }>>({})
