@@ -336,7 +336,7 @@ export default function EscapeRoom() {
     setItems(prev => prev.map(i => i.state_id === state_id ? { ...i, current_zone: zone as any, panorama_slot: slot } : i))
 
     // Broadcast via channel
-    supabase.channel(`cursor-${ROOM_CODE}`).send({
+    supabase.channel(`cursor-${roomCode}`).send({
       type: 'broadcast',
       event: 'move',
       payload: { id: state_id, current_zone: zone, panorama_slot: slot }
