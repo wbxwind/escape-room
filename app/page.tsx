@@ -166,6 +166,7 @@ export default function EscapeRoom() {
   
   const [roomCode, setRoomCode] = useState<string | null>(null)
   const [availableRooms, setAvailableRooms] = useState<string[]>([])
+  const [roomParticipants, setRoomParticipants] = useState<Record<string, any[]>>({})
 
   // Realtime dragging ghost positions from other clients
   const [externalGhosts, setExternalGhosts] = useState<Record<string, { x: number, y: number, assetId: string }>>({})
@@ -176,22 +177,50 @@ export default function EscapeRoom() {
   )
 
   useEffect(() => {
-    async function loadRooms() {
-      const { data } = await supabase.from('room_state').select('room_code')
-      if (data) {
-        const codes = Array.from(new Set(data.map(r => r.room_code).filter(Boolean)))
+    async function loadRoomsAndParticipants() {
+      // 1. Fetch Rooms
+      const { data: roomsData } = await supabase.from('room_state').select('room_code')
+      if (roomsData) {
+        const codes = Array.from(new Set(roomsData.map(r => r.room_code).filter(Boolean)))
         setAvailableRooms(codes)
-        if (codes.length > 0 && !roomCode) {
-          setRoomCode(codes[0])
-        }
+        setRoomCode(current => {
+          if (!current && codes.length > 0) return codes[0]
+          return current
+        })
+      }
+
+      // 2. Fetch Presence
+      const { data: pData } = await supabase.from('room_participants').select('*')
+      if (pData) {
+         const map: Record<string, any[]> = {}
+         pData.forEach(p => {
+           if (p.room_code) {
+             if (!map[p.room_code]) map[p.room_code] = []
+             map[p.room_code].push(p)
+           }
+         })
+         setRoomParticipants(map)
       }
     }
-    loadRooms()
+    
+    loadRoomsAndParticipants()
+
+    // Listen passively for anyone anywhere dropping into rooms
+    const channel = supabase.channel('global-participants-feed')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'room_participants' }, () => {
+         loadRoomsAndParticipants()
+      })
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
   }, [])
 
   useEffect(() => {
     if (!roomCode) return
     let cancelled = false
+    let handleUnload: () => void;
     setLoading(true)
 
     async function init() {
@@ -205,6 +234,16 @@ export default function EscapeRoom() {
            localStorage.setItem('escape-room-id', cachedId)
            localStorage.setItem('escape-room-name', cachedName)
         }
+
+        handleUnload = () => {
+          fetch('/api/leave-room', {
+            method: 'POST',
+            keepalive: true,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ userId: cachedId })
+          }).catch(console.error)
+        }
+        window.addEventListener('beforeunload', handleUnload)
 
         // Connect to LiveKit via Token Generation
         try {
@@ -286,6 +325,7 @@ export default function EscapeRoom() {
     return () => {
       cancelled = true
       supabase.removeChannel(cursorChannel)
+      if (handleUnload) window.removeEventListener('beforeunload', handleUnload)
     }
   }, [roomCode])
 
@@ -378,7 +418,11 @@ export default function EscapeRoom() {
             <h1 className="font-bold text-xl tracking-wide">BACK STORIES engine</h1>
             {/* Mobile Select */}
             <select className="md:hidden bg-slate-900 border border-slate-700 text-sm px-2 py-1 rounded" value={roomCode || ''} onChange={(e) => setRoomCode(e.target.value)}>
-               {availableRooms.map(r => <option key={r} value={r}>{r}</option>)}
+               {availableRooms.map(r => (
+                 <option key={r} value={r}>
+                   {r} {roomParticipants[r] ? `(${roomParticipants[r].length})` : ''}
+                 </option>
+               ))}
             </select>
             <span className="hidden md:inline-block text-cyan-500 text-sm font-mono bg-cyan-900/30 px-2 py-1 border border-cyan-500/20 rounded-md">[{roomCode}]</span>
           </div>
@@ -390,18 +434,31 @@ export default function EscapeRoom() {
         <div className="flex-1 flex flex-col md:flex-row min-h-0">
           
           {/* Room Navigator Sidebar */}
-          <div className="hidden md:flex w-48 bg-[#0a0a0a] border-r border-white/5 p-4 flex-col items-start gap-2 overflow-y-auto">
-            <h3 className="text-xs font-mono tracking-widest text-slate-500 mb-2 uppercase border-b border-slate-800 pb-2 w-full">Lobby Rooms</h3>
-            {availableRooms.map(r => (
-               <button 
-                  key={r} 
-                  onClick={() => setRoomCode(r)}
-                  className={`w-full text-left px-3 py-2 rounded text-sm font-semibold transition ${r === roomCode ? 'bg-cyan-950 border border-cyan-400/30 text-cyan-200' : 'bg-slate-900 hover:bg-slate-800 text-slate-400'}`}
-                >
-                 Row: {r}
-               </button>
-            ))}
-            {availableRooms.length === 0 && <span className="text-xs text-slate-600 italic">No rooms loaded...</span>}
+          <div className="hidden md:flex w-48 bg-[#0a0a0a] border-r border-white/5 p-4 flex-col items-start gap-4 overflow-y-auto">
+            <h3 className="text-xs font-mono tracking-widest text-slate-500 border-b border-slate-800 pb-2 w-full uppercase">Lobby Rooms</h3>
+            <div className="flex flex-col gap-2 w-full">
+              {availableRooms.map(r => (
+                 <div key={r} className="w-full flex flex-col gap-1">
+                   <button 
+                      onClick={() => setRoomCode(r)}
+                      className={`w-full text-left px-3 py-2 rounded text-sm font-semibold transition ${r === roomCode ? 'bg-cyan-950 border border-cyan-400/30 text-cyan-200' : 'bg-slate-900 hover:bg-slate-800 text-slate-400'}`}
+                    >
+                     Room: {r}
+                   </button>
+                   {roomParticipants[r] && roomParticipants[r].length > 0 && (
+                     <div className="flex flex-col pl-3 mt-1 ml-1 border-l-2 border-slate-800 space-y-1">
+                        {roomParticipants[r].map(p => (
+                           <div key={p.user_id} className="flex items-center gap-2 text-xs font-medium text-slate-400 py-0.5">
+                             <div className="w-1.5 h-1.5 rounded-full bg-emerald-700"></div>
+                             <span className="truncate w-full">{p.username}</span>
+                           </div>
+                        ))}
+                     </div>
+                   )}
+                 </div>
+              ))}
+              {availableRooms.length === 0 && <span className="text-xs text-slate-600 italic">No rooms loaded...</span>}
+            </div>
           </div>
 
           {/* Panorama Area */}
