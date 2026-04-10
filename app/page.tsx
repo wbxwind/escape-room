@@ -130,8 +130,10 @@ function VoiceHUD({ isMicMuted, setIsMicMuted, isDeafened, setIsDeafened, cached
   // Enforce consistent mute state across unmounts/lobby jumps natively
   useEffect(() => {
     if (localParticipant) {
-      if (localParticipant.isMicrophoneEnabled === isMicMuted) {
-        localParticipant.setMicrophoneEnabled(!isMicMuted).catch(console.error)
+      // Force hardware state to match our React state explicitly
+      const shouldBeMuted = isMicMuted;
+      if (localParticipant.isMicrophoneEnabled !== !shouldBeMuted) {
+        localParticipant.setMicrophoneEnabled(!shouldBeMuted).catch(console.error);
       }
     }
   }, [localParticipant, isMicMuted])
@@ -160,17 +162,20 @@ function VoiceHUD({ isMicMuted, setIsMicMuted, isDeafened, setIsDeafened, cached
       <div className="flex flex-col gap-3">
         {participants.map(p => {
            const isMe = p.identity === localParticipant?.identity
+           // Only show speaking highlight if NOT deafened and NOT muted
+           const isSpeakingVisible = p.isSpeaking && !isDeafened && (isMe ? !isMicMuted : true);
+           
            return (
            <div key={p.identity} className="flex gap-3 items-center">
              <div className="relative">
-               <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${p.isSpeaking && !isDeafened ? 'text-white ring-2' : 'text-slate-400'} ${isMe ? (p.isSpeaking && !isDeafened ? 'bg-blue-600 ring-blue-400' : 'bg-slate-800') : (p.isSpeaking && !isDeafened ? 'bg-emerald-600 ring-emerald-400' : 'bg-slate-800')}`}>
+               <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${isSpeakingVisible ? 'text-white ring-2' : 'text-slate-400'} ${isMe ? (isSpeakingVisible ? 'bg-blue-600 ring-blue-400' : 'bg-slate-800') : (isSpeakingVisible ? 'bg-emerald-600 ring-emerald-400' : 'bg-slate-800')}`}>
                  {p.name?.substring(0, 2).toUpperCase() || '??'}
                </div>
                <div className="absolute -bottom-1 -right-1 bg-black rounded-full p-0.5">
                   <TrackMutedIndicator trackRef={{ participant: p, source: Track.Source.Microphone }} show={'muted'} className="!w-3 !h-3" />
                </div>
              </div>
-             <span className={`text-sm font-semibold pl-1 ${p.isSpeaking && !isDeafened ? 'text-white' : 'text-slate-400'} ${isMe ? 'opacity-80' : ''}`}>{p.name || p.identity} {isMe ? '(You)' : ''}</span>
+             <span className={`text-sm font-semibold pl-1 ${isSpeakingVisible ? 'text-white' : 'text-slate-400'} ${isMe ? 'opacity-80' : ''}`}>{p.name || p.identity} {isMe ? '(You)' : ''}</span>
            </div>
         )})}
         {participants.length === 0 && (
@@ -569,7 +574,7 @@ export default function EscapeRoom() {
 
   if (liveKitToken && liveKitUrl) {
     return (
-      <LiveKitRoom serverUrl={liveKitUrl} token={liveKitToken} connect={true} audio={true}>
+      <LiveKitRoom serverUrl={liveKitUrl} token={liveKitToken} connect={true} audio={!isMicMuted}>
          {viewBase}
          <VoiceHUD 
             isMicMuted={isMicMuted} 
