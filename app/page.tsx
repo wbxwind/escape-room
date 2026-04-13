@@ -31,6 +31,7 @@ interface GameAsset {
   content_front: string
   content_back: string
   default_zone: string
+  image_url?: string | null
 }
 
 interface RoomState {
@@ -73,13 +74,27 @@ function CardBody({ asset }: { asset: JoinedAsset }) {
     <div className={`card-base w-[140px] h-[210px] md:w-[150px] md:h-[225px] flex-none border-[3px] border-solid
       ${isWindow ? 'bg-cyan-950/80 border-dashed' : 'bg-slate-900/90'} 
       ${borderColor}
-      rounded-xl flex flex-col p-2 md:p-3 shadow-2xl relative overflow-hidden select-none`}>
-      {(isWindow || isAction) && (
-        <div className={`absolute inset-0 bg-cyan-400/5 pointer-events-none`} />
+      rounded-xl flex flex-col shadow-2xl relative overflow-hidden select-none ${asset.image_url ? 'p-0' : 'p-2 md:p-3'}`}>
+      
+      {asset.image_url ? (
+        <div className="absolute inset-0 w-full h-full">
+           <img 
+             src={asset.image_url} 
+             alt={asset.title} 
+             className="w-full h-full object-cover"
+           />
+           {/* Subtle overlay for the type/number if needed, but following request to replace entire content */}
+        </div>
+      ) : (
+        <>
+          {(isWindow || isAction) && (
+            <div className={`absolute inset-0 bg-cyan-400/5 pointer-events-none`} />
+          )}
+          <div className="z-10 text-[10px] text-zinc-400 font-mono tracking-widest">{computedType.replace('_', ' ')} #{asset.card_number}</div>
+          <div className="z-10 text-lg font-bold text-white mt-1 leading-tight line-clamp-2">{asset.title}</div>
+          <div className="z-10 text-xs text-zinc-300 mt-2 line-clamp-4">{asset.content_front}</div>
+        </>
       )}
-      <div className="z-10 text-[10px] text-zinc-400 font-mono tracking-widest">{computedType.replace('_', ' ')} #{asset.card_number}</div>
-      <div className="z-10 text-lg font-bold text-white mt-1 leading-tight line-clamp-2">{asset.title}</div>
-      <div className="z-10 text-xs text-zinc-300 mt-2 line-clamp-4">{asset.content_front}</div>
     </div>
   )
 }
@@ -319,29 +334,38 @@ export default function EscapeRoom() {
            await supabase.from('room_participants').update({ last_seen: new Date().toISOString(), room_code: roomCode, is_muted: savedMute, is_deafened: savedDeafen }).eq('user_id', cid)
         }
 
-        // Fetch game_assets
-        let { data: assets, error: assetsErr } = await supabase.from('game_assets').select('*').or(`room_code.is.null,room_code.eq.${roomCode}`)
+        // Fetch room state and join with game_assets
+        const [{ data: assets, error: assetsErr }, { data: states, error: statesErr }] = await Promise.all([
+          supabase.from('game_assets').select('*').or(`room_code.is.null,room_code.eq.${roomCode}`),
+          supabase.from('room_state').select('*').eq('room_code', roomCode)
+        ])
 
         if (assetsErr) console.error('Error fetching assets:', assetsErr)
+        if (statesErr) console.error('Error fetching room state:', statesErr)
 
         if (!cancelled && assets) {
-          let nextPanoramaSlot = 1
-          const localItems: JoinedAsset[] = assets.map(a => {
-            let z = a.default_zone || 'DECK'
+          // Sort assets by card_number (e.g., P1, P2...) to ensure deterministic fallback order
+          const sortedAssets = [...assets].sort((a, b) => (a.card_number || "").localeCompare(b.card_number || "", undefined, { numeric: true }))
+          
+          let fallbackSlot = 1
+          const localItems: JoinedAsset[] = sortedAssets.map(a => {
+            const state = states?.find(s => s.asset_id === a.id)
+            
+            let z = state?.current_zone || a.default_zone || 'DECK'
             if (z === 'PLAYER' || z === 'OBJECTIVE') z = 'PLAYER_AREA'
             
-            let assignedSlot = null
-            if (z === 'PANORAMA') {
-              assignedSlot = nextPanoramaSlot <= 8 ? nextPanoramaSlot : null
-              nextPanoramaSlot++
+            let assignedSlot = state?.panorama_slot || null
+            if (z === 'PANORAMA' && !assignedSlot) {
+               assignedSlot = fallbackSlot <= 8 ? fallbackSlot : null
+               fallbackSlot++
             }
             
             return {
               ...a,
-              state_id: a.id,
+              state_id: state?.id || a.id,
               current_zone: z,
               panorama_slot: assignedSlot,
-              attached_to: null
+              attached_to: state?.attached_to || null
             }
           })
           
