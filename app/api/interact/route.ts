@@ -1,49 +1,41 @@
-import { NextResponse } from 'next/server'
-import { createClient } from '@supabase/supabase-js'
+import { NextRequest, NextResponse } from 'next/server'
+import { createServerClient } from '@/lib/supabase-server'
 
-export async function POST(request: Request) {
+export async function POST(req: NextRequest) {
   try {
-    const { actionId, panoramaId, roomCode } = await request.json()
+    const { actionId, panoramaId, roomCode } = await req.json()
 
-    // Create a Supabase client with the Service Role key since this is a server route 
-    // doing administrative logic, or standard anon if row level security allows.
-    // For MVP, we'll assume anon is allowed or use the env vars available in the project.
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
-    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || ''
-    
-    if (!supabaseUrl || !supabaseKey) {
-        return NextResponse.json({ success: true, message: `Action ${actionId} performed on ${panoramaId}. (No DB configured)`})
+    if (!actionId || !panoramaId || !roomCode) {
+      return NextResponse.json({ success: false, message: 'Missing required fields.' }, { status: 400 })
     }
 
-    const supabase = createClient(supabaseUrl, supabaseKey)
+    const supabase = createServerClient()
 
-    // Simulate an interaction result.
-    // Example: Using "Unlock" (A4) on "Rusty Door" (P1)
-    
-    // First, let's discard the Action card (we assume actionId is the game_asset id)
-    // Wait, the client passed actionId and panoramaId which are currently the uuid from `game_assets`
-    // We update room_state for actionId to 'DISCARD'
-    const { error: err1 } = await supabase
-      .from('room_state')
-      .update({ current_zone: 'DISCARD', panorama_slot: null })
-      .eq('room_code', roomCode)
-      .eq('asset_id', actionId)
+    // Look up a defined interaction for this action + situation pair
+    const { data: interaction } = await supabase
+      .from('interactions')
+      .select('*')
+      .eq('action_card_id', actionId)
+      .eq('situation_card_id', panoramaId)
+      .maybeSingle()
 
-    if (err1) {
-      console.error('Interact DB Error:', err1)
-    }
+    // Discard the action card — persists via card_positions so all clients see it
+    const { error } = await supabase
+      .from('card_positions')
+      .upsert(
+        { room_code: roomCode, asset_id: actionId, current_zone: 'DISCARD', panorama_slot: null, updated_at: new Date().toISOString() },
+        { onConflict: 'room_code,asset_id' },
+      )
 
-    return NextResponse.json({
-      success: true,
-      message: `Used action [${actionId.slice(0, 4)}] on [${panoramaId.slice(0, 4)}]. It was discarded!`,
-      actionId,
-      panoramaId,
-      roomCode,
-    })
-  } catch (error) {
-    return NextResponse.json(
-      { success: false, message: 'Invalid request.' },
-      { status: 400 }
-    )
+    if (error) console.error('Interact persist error:', error)
+
+    const message = interaction
+      ? `Interaction resolved: ${interaction.result_type}`
+      : `Action used — discarded to the pile.`
+
+    return NextResponse.json({ success: true, message, interaction })
+  } catch (err) {
+    console.error('Interact route error:', err)
+    return NextResponse.json({ success: false, message: 'Invalid request.' }, { status: 400 })
   }
 }
