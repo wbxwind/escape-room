@@ -1,0 +1,252 @@
+BACKSTORIES — COMPLETE GAME RULES & MECHANICS
+==============================================
+Design by JohnMénard and Anthony Perone
+Scenario written by Benoit Bannier and Jeremy Ducret
+Published by Cylix Berlin
+
+OVERVIEW
+--------
+Backstories is a cooperative narrative card game for 1–X players where you complete
+objectives and make decisions that shape the story. Most of the time there is no right
+or wrong choice — just a different way to play through the story. Every decision has
+consequences. The story always progresses even if you fail or make the "wrong" choices.
+
+CONTENTS
+--------
+• 126 cards total (numbered sequentially)
+• 1 rulebook (this document)
+
+IMPORTANT SETUP NOTE
+--------------------
+Do NOT shuffle or look at the cards before beginning your adventure.
+If the cards are out of order for any reason (e.g., you've already played through
+the story), sort them back into ascending numerical order before starting.
+Make sure all cards face the same way — the backs do NOT have numbers in the top-left
+corner; the number appears on the front only.
+
+PLAY SPACE SETUP
+----------------
+Organize your table into the following areas:
+
+  ┌──────────────────────────────────────────────────────────────────┐
+  │  OBJECTIVE AREA │         THE PANORAMA           │    DISCARD    │
+  │  (Character +   │   (Situation cards, slots 1–8) │    (pile)     │
+  │   Status cards) │                                │               │
+  ├─────────────────┴────────────────────────────────┴───────────────┤
+  │                     PLAYER AREA (hand)                           │
+  │    Action cards, Issue cards, Window/Notch cards                 │
+  └──────────────────────────────────────────────────────────────────┘
+
+  The DECK lives in its box to one side; draw from it as instructed.
+
+1. Read the first card of the adventure aloud and apply its effects.
+2. You can now begin your adventure.
+
+(Tip: The designers suggest leaving the deck in its box and only taking cards out
+as needed — this prevents accidentally seeing future cards.)
+
+
+CARD TYPES (6 types, color-coded)
+----------------------------------
+
+1. CHARACTER / OBJECTIVE / ENDING CARDS  [color: red / pink]
+   - Tell you what you need to do to continue your adventure (your objectives).
+   - Place them in the OBJECTIVE AREA.
+   - Allow you to track your hero's status throughout the adventure.
+   - ENDING cards are also this type — when drawn, they conclude the story.
+   - Note: Slide any Status cards you receive BENEATH this card (red section visible).
+
+2. ISSUE CARDS  [color: orange / amber]
+   - Important adventure notes (images or text).
+   - Allow you to resolve certain situations or better understand the challenges ahead.
+   - Place them in the PLAYER AREA.
+
+3. STORY CARDS  [color: blue / purple]
+   - Progress your adventure based on the actions you perform.
+   - READ aloud to all players when drawn.
+   - Place them in the DISCARD AREA after reading, UNLESS the card tells you otherwise.
+
+4. SITUATION CARDS  [color: brown / tan]
+   - Images of locations, people, or items where you can perform actions.
+   - Place them in the PANORAMA AREA (they build up a bigger view of the scene).
+   - Stay in the Panorama until you are told to discard them.
+   - Return a Situation card to the Panorama after using it (unless told to discard it).
+
+5. ACTION CARDS — two sub-types  [color: green / cyan]
+
+   a) WINDOW ACTION CARDS
+      - Have a cut-out "window" shape in the center.
+      - When played: hold the Window card in front of a Situation card and line up
+        the windows. Read the text visible through the window and apply any effects.
+      - Start in the PLAYER AREA.
+
+   b) NOTCH ACTION CARDS
+      - Have a notch cut into the side of the card (unlike Window cards).
+      - When played: hold the Notch card against the side of a Situation card.
+        The notch reveals a number on the Situation card.
+        Draw that numbered card from the deck.
+        If there is no number (just an icon), apply the icon's effect.
+        If there is no icon at all, nothing happens.
+      - Start in the PLAYER AREA.
+
+6. STATUS CARDS  [color: dark purple / navy / indigo]
+   - Placed BENEATH your Character card, keeping the red section visible at the top.
+   - NOT discarded — they remain until the END of the adventure.
+   - Once placed beneath the Character card, follow the card's further instructions
+     (usually: "Turn over this card" to reveal a condition or ongoing effect).
+   - A card may reference a Status card (indicated by an icon next to its number).
+   - If told to draw a Status card you already have, follow that card's instructions.
+
+
+PROGRESSING THE STORY
+---------------------
+Perform actions based on the Action cards available to you. This advances the story.
+
+IMPORTANT: You cannot start a new action until you have completely finished
+the previous action (resolved all effects, placed all cards, etc.).
+
+GROUP PLAY
+----------
+Work together as a team to complete objectives. Set the playing area in the center
+of the table so everyone can reach it.
+
+Structured-turn variant:
+  Take turns performing actions. You may discuss options as a group, but the
+  player whose turn it is makes the final decision. After finishing their action,
+  play passes to the left.
+
+
+HOW TO PLAY AN ACTION
+---------------------
+Step 1: Choose one Action card from your PLAYER AREA.
+Step 2: Choose one Situation card from the PANORAMA AREA.
+Step 3: Pick up BOTH cards.
+Step 4: Hold the Action card in front of / on top of the Situation card.
+
+  • If it is a WINDOW Action card:
+    Line up the windows together.
+    Read the text visible in the window.
+    Apply any effects listed.
+
+  • If it is a NOTCH Action card:
+    Line the notch against the edge of the Situation card.
+    The notch reveals a number.
+    Draw the numbered card from the deck.
+    If there is an icon instead of a number, apply the icon's effect.
+    If there is nothing, nothing happens.
+
+Step 5: Return both the Action card and the Situation card to their respective areas
+        (Player Area and Panorama), UNLESS an effect tells you to discard them.
+
+
+APPLYING AN EFFECT
+------------------
+After using a Window or Notch card, a colored text box displays the effect.
+These help progress your adventure and provide clues.
+
+Common effect types:
+
+  [DRAW CARD ICON]
+    Draw the numbered card and place it in the indicated position.
+    If the card is no longer in the deck, nothing happens — proceed normally.
+
+  [TURN OVER ICON]
+    Turn over the card with this icon and read it aloud.
+
+  [DECISION ICON]
+    Some effects depend on a decision you make.
+
+  [CONDITION ICON]
+    Some effects have a condition — you may only apply the effect if the
+    condition is currently true.
+
+MULTIPLE EFFECTS — ORDER MATTERS:
+  If a card has multiple effects, apply them in the ORDER you read them.
+  Do not skip ahead. Each effect should influence the next before you apply it.
+  After applying all effects from one card, read any NEW cards you were told to draw
+  and apply their effects in turn.
+
+
+DISCARDING THE CARD NUMBER (THE MAGNIFYING GLASS RULE)
+-------------------------------------------------------
+You may sometimes have the opportunity to draw a specific card by solving a riddle or
+discovering a secret code (e.g., using a magnifying glass in the story).
+
+You can ONLY draw a specific card from the deck by its number if there is a
+MAGNIFYING GLASS icon next to that number.
+
+Without a magnifying glass icon, you cannot freely draw numbered cards — the number
+is for the system's internal use only.
+
+
+END OF THE STORY
+----------------
+The end of your adventure occurs when you draw an ENDING card.
+There are multiple possible endings to each scenario, depending on the choices
+you made throughout the adventure.
+
+
+SPECIAL RULES FOR THE STATUS CARD SCENARIO
+-------------------------------------------
+In scenarios that use Status cards:
+  • Status cards are NEVER discarded during the adventure.
+  • Their consequences persist until the very end of the adventure.
+  • A card's effect may reference a Status card by icon (shown next to the card number).
+  • If you are told to draw a Status card you already have, follow the instructions
+    printed on that Status card.
+  • Status cards are slid BENEATH the Character card, with only the red top section
+    visible. The card will give further instructions (usually to turn it over).
+
+
+ZONE REFERENCE SUMMARY
+-----------------------
+DECK          — Cards not yet in play. Sorted numerically in the box.
+PLAYER AREA   — Your hand: holds Action (Window/Notch) cards and Issue cards.
+PANORAMA      — The scene board: holds Situation cards in up to 8 numbered slots.
+OBJECTIVE     — Holds your Character card + any Status cards beneath it. Also holds
+                Ending cards when drawn.
+DISCARD       — Used/read cards. Story cards always go here after being read.
+                Some Situation/Action cards are discarded per effect instructions.
+STORY (read)  — Optional staging zone: place a Story card here while reading it
+                aloud to your group before moving it to Discard.
+
+
+CARD TYPE → DEFAULT ZONE MAPPING
+----------------------------------
+CHARACTER     → OBJECTIVE AREA
+ENDING        → OBJECTIVE AREA (concludes the game)
+ISSUE         → PLAYER AREA
+STORY         → DISCARD (after reading aloud)
+SITUATION     → PANORAMA AREA
+ACTION_WINDOW → PLAYER AREA
+NOTCH         → PLAYER AREA
+STATUS        → OBJECTIVE AREA (beneath CHARACTER card)
+
+
+INTERACTION MATRIX (Action × Situation)
+-----------------------------------------
+Each Action card × Situation card combination may have a defined result stored in
+the game's interaction table. Possible result_types:
+
+  DRAW_CARD          — Draw a specific card number from the deck.
+  DRAW_STORY         — Draw a Story card and read it aloud.
+  DRAW_STATUS        — Place a Status card beneath the Character card.
+  DISCARD_SITUATION  — Remove the Situation card from the Panorama.
+  NOTHING            — No effect (the notch/window has no match here).
+  CUSTOM             — A narrative text effect printed directly on the card.
+
+
+DIGITAL ENGINE — ADDITIONAL NOTES
+-----------------------------------
+In the digital version:
+
+• DRAG an Action card onto a Situation card in the Panorama to perform an action.
+• The "Draw by Number" input lets you draw a specific card if it has a
+  magnifying-glass icon (has_magnifying_glass = true in the database).
+• STATUS cards dragged to the Objective Area are automatically stacked beneath
+  the Character card.
+• Story cards dragged to the Story reading zone are displayed for the group to read
+  before being discarded.
+• Real-time sync via Supabase Realtime ensures all players see card movements
+  immediately.
+• Voice chat via LiveKit lets players communicate without leaving the game.

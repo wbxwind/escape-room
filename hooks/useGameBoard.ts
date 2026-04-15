@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useSensors, useSensor, PointerSensor, TouchSensor, type DragEndEvent, type DragStartEvent } from '@dnd-kit/core'
 import { supabase } from '@/lib/supabase'
-import { JoinedAsset, CardPosition, RoomParticipant, PANORAMA_TYPES, resolveCardType } from '@/types'
+import { JoinedAsset, CardPosition, RoomParticipant, PANORAMA_TYPES, ACTION_TYPES, OBJECTIVE_TYPES, resolveCardType } from '@/types'
 
 export interface GameBoardState {
   items: JoinedAsset[]
@@ -24,6 +24,17 @@ export interface GameBoardState {
   handleDragStart: (e: DragStartEvent) => void
   handleDragEnd: (e: DragEndEvent) => Promise<void>
   drawCard: () => Promise<void>
+  drawCardByNumber: (cardNumber: string) => Promise<void>
+}
+
+/** Normalise zone strings from DB/legacy values to the canonical set. */
+function normaliseZone(raw: string | null | undefined): string {
+  const z = (raw ?? 'DECK').toUpperCase()
+  // Legacy aliases
+  if (z === 'PLAYER' || z === 'HAND') return 'PLAYER_AREA'
+  if (z === 'CHARACTER_ZONE' || z === 'CHAR') return 'OBJECTIVE'
+  if (z === 'PANORAMA_AREA') return 'PANORAMA'
+  return z
 }
 
 export function useGameBoard(): GameBoardState {
@@ -48,7 +59,7 @@ export function useGameBoard(): GameBoardState {
   // Auto-dismiss toasts
   useEffect(() => {
     if (!toast) return
-    const t = setTimeout(() => setToast(null), 3000)
+    const t = setTimeout(() => setToast(null), 4000)
     return () => clearTimeout(t)
   }, [toast])
 
@@ -96,19 +107,22 @@ export function useGameBoard(): GameBoardState {
 
     async function init() {
       try {
-        // Resolve or create local player identity
-        let cid   = localStorage.getItem('escape-room-id')
-        let cname = localStorage.getItem('escape-room-name')
+        // Resolve or create local player identity (backstories-prefixed keys)
+        let cid   = localStorage.getItem('backstories-id')
+        let cname = localStorage.getItem('backstories-name')
+        // Migrate old escape-room keys if present
+        if (!cid) cid = localStorage.getItem('escape-room-id') ?? null
+        if (!cname) cname = localStorage.getItem('escape-room-name') ?? null
         if (!cid || !cname) {
           cid   = crypto.randomUUID()
           cname = `Player-${Math.floor(Math.random() * 1000)}`
-          localStorage.setItem('escape-room-id',   cid)
-          localStorage.setItem('escape-room-name', cname)
         }
+        localStorage.setItem('backstories-id',   cid)
+        localStorage.setItem('backstories-name', cname)
         setCachedId(cid)
 
-        const savedMute   = localStorage.getItem('is-mic-muted') === 'true'
-        const savedDeafen = localStorage.getItem('is-deafened')  === 'true'
+        const savedMute   = localStorage.getItem('backstories-mic-muted') === 'true'
+        const savedDeafen = localStorage.getItem('backstories-deafened')  === 'true'
         setIsMicMuted(savedMute)
         setIsDeafened(savedDeafen)
 
@@ -171,8 +185,8 @@ export function useGameBoard(): GameBoardState {
           const joined: JoinedAsset[] = sorted.map(a => {
             const pos = positions?.find(p => p.asset_id === a.id) as CardPosition | undefined
 
-            let zone = pos?.current_zone ?? a.default_zone ?? 'DECK'
-            if (zone === 'PLAYER' || zone === 'OBJECTIVE') zone = 'PLAYER_AREA'
+            const rawZone = pos?.current_zone ?? a.default_zone ?? 'DECK'
+            const zone    = normaliseZone(rawZone)
 
             let slot = pos?.panorama_slot ?? null
             if (zone === 'PANORAMA' && !slot) slot = fallbackSlot <= 8 ? fallbackSlot++ : null
@@ -198,7 +212,7 @@ export function useGameBoard(): GameBoardState {
 
     const cleanupPromise = init()
 
-    // Realtime: sync card position changes made by other clients via DB writes
+    // Realtime: sync card position changes made by other clients
     const posChannel = supabase
       .channel(`card-positions-${roomCode}`)
       .on(
@@ -209,7 +223,13 @@ export function useGameBoard(): GameBoardState {
           const pos = row as CardPosition
           setItems(prev => prev.map(i =>
             i.id === pos.asset_id
-              ? { ...i, state_id: pos.id, current_zone: pos.current_zone, panorama_slot: pos.panorama_slot, attached_to: pos.attached_to }
+              ? {
+                  ...i,
+                  state_id:      pos.id,
+                  current_zone:  normaliseZone(pos.current_zone),
+                  panorama_slot: pos.panorama_slot,
+                  attached_to:   pos.attached_to,
+                }
               : i
           ))
         },
@@ -260,11 +280,51 @@ export function useGameBoard(): GameBoardState {
     if (data.message) setToast(data.message)
   }, [roomCode])
 
+  /** Draw the next card from the top of the sorted deck (lowest card_number). */
   const drawCard = useCallback(async () => {
     const deck = items.filter(i => i.current_zone === 'DECK')
-    if (deck.length === 0) return setToast('Deck is empty!')
-    await moveAsset(deck[0].state_id, 'PLAYER_AREA', null)
-    setToast(`Drawn: ${deck[0].title}`)
+    if (deck.length === 0) return setToast('The deck is empty!')
+    const card    = deck[0]
+    const type    = resolveCardType(card)
+    // Determine where the card goes when drawn
+    const destZone = OBJECTIVE_TYPES.has(type) ? 'OBJECTIVE'
+                   : type === 'STORY'           ? 'STORY_ZONE'
+                   : 'PLAYER_AREA'
+    await moveAsset(card.state_id, destZone, null)
+    setToast(`Drawn: ${card.title || `Card #${card.card_number}`}`)
+  }, [items, moveAsset])
+
+  /**
+   * Draw a specific card by its card_number (only valid if has_magnifying_glass is true).
+   * Matches the "Discussing the Card Number" rule in the rulebook.
+   */
+  const drawCardByNumber = useCallback(async (cardNumber: string) => {
+    const card = items.find(i => i.card_number === cardNumber.trim() && i.current_zone === 'DECK')
+    if (!card) return setToast(`Card #${cardNumber} is not in the deck.`)
+
+    // Check magnifying glass permission in the interactions table
+    const { data: interaction } = await supabase
+      .from('interactions')
+      .select('has_magnifying_glass')
+      .or(`target_card_number.eq.${cardNumber}`)
+      .eq('has_magnifying_glass', true)
+      .maybeSingle()
+
+    // Also check game_assets for a direct has_magnifying_glass flag if it exists
+    // (the column may have been added in migration 002)
+    const assetRaw = card as JoinedAsset & { has_magnifying_glass?: boolean }
+    const allowed  = interaction !== null || assetRaw.has_magnifying_glass === true
+
+    if (!allowed) {
+      return setToast(`You need a magnifying glass icon to draw card #${cardNumber} directly.`)
+    }
+
+    const type     = resolveCardType(card)
+    const destZone = OBJECTIVE_TYPES.has(type) ? 'OBJECTIVE'
+                   : type === 'STORY'           ? 'STORY_ZONE'
+                   : 'PLAYER_AREA'
+    await moveAsset(card.state_id, destZone, null)
+    setToast(`Drew card #${cardNumber}: ${card.title || ''}`)
   }, [items, moveAsset])
 
   const handleDragStart = useCallback((e: DragStartEvent) => {
@@ -282,85 +342,109 @@ export function useGameBoard(): GameBoardState {
 
     const cardType          = resolveCardType(dragged)
     const isDraggedPanorama = PANORAMA_TYPES.has(cardType)
+    const isDraggedAction   = ACTION_TYPES.has(cardType)
+    const isDraggedObjective = OBJECTIVE_TYPES.has(cardType)
 
+    // ── Player Area ────────────────────────────────────────────
     if (overId === 'zone-PLAYER_AREA') {
       await moveAsset(dragged.state_id, 'PLAYER_AREA', null)
       return
     }
 
+    // ── Discard ────────────────────────────────────────────────
     if (overId === 'zone-DISCARD') {
       await moveAsset(dragged.state_id, 'DISCARD', null)
       return
     }
 
+    // ── Story Zone (staging for reading aloud) ─────────────────
+    if (overId === 'zone-STORY') {
+      if (cardType === 'STORY') {
+        await moveAsset(dragged.state_id, 'STORY_ZONE', null)
+      } else {
+        setToast('Only Story cards can be placed here to read aloud.')
+        await moveAsset(dragged.state_id, 'PLAYER_AREA', null)
+      }
+      return
+    }
+
+    // ── Panorama slots ─────────────────────────────────────────
     if (overId.startsWith('panorama-')) {
       const slot     = parseInt(overId.replace('panorama-', ''), 10)
       const occupant = items.find(i => i.current_zone === 'PANORAMA' && i.panorama_slot === slot)
 
       if (!occupant) {
+        // Empty slot — only Situation cards can be placed here
         if (isDraggedPanorama) {
           await moveAsset(dragged.state_id, 'PANORAMA', slot)
+        } else if (isDraggedAction) {
+          setToast('Drop an Action card on top of a Situation card to use it.')
+          await moveAsset(dragged.state_id, 'PLAYER_AREA', null)
         } else {
           await moveAsset(dragged.state_id, 'PLAYER_AREA', null)
-          setToast('Place action cards directly onto Panoramas to use them.')
         }
         return
       }
 
+      // Occupied slot
       const occupantIsPanorama = PANORAMA_TYPES.has(resolveCardType(occupant))
 
-      if (occupantIsPanorama && !isDraggedPanorama) {
+      if (occupantIsPanorama && isDraggedAction) {
+        // Action card dropped onto a Situation card → perform the interaction
         const existingAction = items.find(i =>
           i.current_zone === 'PANORAMA' && i.panorama_slot === slot && i.state_id !== occupant.state_id
         )
         if (existingAction) {
+          setToast('Only one Action card can be played on a Situation at a time.')
           await moveAsset(dragged.state_id, 'PLAYER_AREA', null)
-          setToast('Only one action card can be on a Panorama at a time.')
         } else {
           await moveAsset(dragged.state_id, 'PANORAMA', slot)
           await triggerInteract(dragged.id, occupant.id)
         }
+      } else if (isDraggedPanorama && occupantIsPanorama) {
+        // Swapping situation cards — put new one in slot, send old to discard
+        await moveAsset(occupant.state_id, 'DISCARD', null)
+        await moveAsset(dragged.state_id, 'PANORAMA', slot)
       } else {
         await triggerInteract(dragged.id, occupant.id)
       }
       return
     }
 
-    if (overId === 'character-slot') {
-      const isCharacter = cardType === 'CHARACTER'
-      const isStatus    = cardType === 'STATUS'
-      const occupant    = items.find(i => i.current_zone === 'CHARACTER_ZONE')
-
-      if (isCharacter && !occupant) {
-        await moveAsset(dragged.state_id, 'CHARACTER_ZONE', 99)
-      } else if (isStatus && occupant) {
-        const existingStatus = items.find(i =>
-          i.current_zone === 'CHARACTER_ZONE' && resolveCardType(i) === 'STATUS'
-        )
-        if (existingStatus) {
-          await moveAsset(dragged.state_id, 'PLAYER_AREA', null)
-          setToast('Only one status card allowed per character.')
-        } else {
-          await moveAsset(dragged.state_id, 'CHARACTER_ZONE', 99)
-          await triggerInteract(dragged.id, occupant.id)
-        }
-      } else if (isCharacter && occupant) {
-        setToast('Character slot is already occupied.')
+    // ── Objective Area (Character + Status cards) ──────────────
+    if (overId === 'zone-OBJECTIVE') {
+      if (!isDraggedObjective) {
+        setToast('Only Character, Ending, or Status cards go in the Objective area.')
         await moveAsset(dragged.state_id, 'PLAYER_AREA', null)
+        return
+      }
+
+      const occupantChar = items.find(i => i.current_zone === 'OBJECTIVE' && resolveCardType(i) === 'CHARACTER')
+
+      if (cardType === 'CHARACTER') {
+        if (occupantChar) {
+          setToast('A Character card is already in the Objective area.')
+          await moveAsset(dragged.state_id, 'PLAYER_AREA', null)
+        } else {
+          await moveAsset(dragged.state_id, 'OBJECTIVE', 99)
+        }
+      } else if (cardType === 'STATUS') {
+        if (!occupantChar) {
+          setToast('Place a Character card in the Objective area first.')
+          await moveAsset(dragged.state_id, 'PLAYER_AREA', null)
+        } else {
+          // Status cards slide beneath the Character card (same zone, stacked)
+          await moveAsset(dragged.state_id, 'OBJECTIVE', 98)
+          await triggerInteract(dragged.id, occupantChar.id)
+        }
+      } else if (cardType === 'ENDING') {
+        // Ending card drawn → place in Objective area, game over
+        await moveAsset(dragged.state_id, 'OBJECTIVE', 97)
+        setToast('An Ending card has been drawn — the adventure concludes!')
       } else {
-        setToast('Only Character or Status cards can go here.')
         await moveAsset(dragged.state_id, 'PLAYER_AREA', null)
       }
       return
-    }
-
-    if (overId === 'story-slot') {
-      if (cardType === 'STORY') {
-        await moveAsset(dragged.state_id, 'STORY_ZONE', 100)
-      } else {
-        setToast('Only Story cards can go here.')
-        await moveAsset(dragged.state_id, 'PLAYER_AREA', null)
-      }
     }
   }, [items, moveAsset, triggerInteract])
 
@@ -371,6 +455,7 @@ export function useGameBoard(): GameBoardState {
     isMicMuted, setIsMicMuted,
     isDeafened, setIsDeafened,
     cachedId, liveKitToken, liveKitUrl,
-    sensors, handleDragStart, handleDragEnd, drawCard,
+    sensors, handleDragStart, handleDragEnd,
+    drawCard, drawCardByNumber,
   }
 }

@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Escape Room — Agentic Board Game",
-  description: "A real-time multiplayer escape room board game inspired by Back Stories. Drag and drop action cards onto panoramas to interact.",
+  title: "Backstories — Digital Game Engine",
+  description: "A real-time multiplayer digital engine for the Backstories cooperative narrative card game. Drag and drop action cards onto panoramas to interact.",
 };
 
 export default function RootLayout({

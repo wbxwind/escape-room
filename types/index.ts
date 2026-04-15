@@ -3,9 +3,11 @@ export type Zone =
   | 'PLAYER_AREA'
   | 'PANORAMA'
   | 'DISCARD'
-  | 'CHARACTER_ZONE'
-  | 'STORY_ZONE'
-  | 'OBJECTIVE'
+  | 'OBJECTIVE'      // Character card + Status cards (stacked beneath it)
+  | 'STORY_ZONE'     // Staging zone: card displayed here while being read aloud
+
+/** @deprecated Use OBJECTIVE instead */
+export type LegacyZone = 'CHARACTER_ZONE'
 
 export interface GameAsset {
   id: string
@@ -53,5 +55,17 @@ export function resolveCardType(asset: Pick<GameAsset, 'type'>): string {
   return (asset.type || 'UNKNOWN').toUpperCase()
 }
 
+// Cards that live in the Panorama area (scene slots)
 export const PANORAMA_TYPES = new Set(['PANORAMA', 'SITUATION'])
-export const ACTION_TYPES   = new Set(['ACTION', 'ACTION_WINDOW', 'WINDOW'])
+
+// Cards that can be played as actions (dragged onto Situation cards)
+export const ACTION_TYPES = new Set(['ACTION', 'ACTION_WINDOW', 'WINDOW', 'NOTCH', 'ACTION_NOTCH'])
+
+// Cards that live in the Objective area (character tracking)
+export const OBJECTIVE_TYPES = new Set(['CHARACTER', 'ENDING', 'STATUS'])
+
+// Cards that go directly to the Player Area (hand)
+export const PLAYER_AREA_TYPES = new Set(['ISSUE', 'ACTION', 'ACTION_WINDOW', 'WINDOW', 'NOTCH', 'ACTION_NOTCH'])
+
+// Cards that go to Discard after being read
+export const STORY_TYPES = new Set(['STORY'])
