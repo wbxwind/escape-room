@@ -77,13 +77,61 @@ function CardBody({ asset }: { asset: JoinedAsset }) {
       rounded-xl flex flex-col shadow-2xl relative overflow-hidden select-none ${asset.image_url ? 'p-0' : 'p-2 md:p-3'}`}>
       
       {asset.image_url ? (
-        <div className="absolute inset-0 w-full h-full">
+        <div className="absolute inset-0 w-full h-full flex flex-col">
            <img 
              src={asset.image_url} 
              alt={asset.title} 
-             className="w-full h-full object-cover"
+             className="absolute inset-0 w-full h-full object-cover"
            />
-           {/* Subtle overlay for the type/number if needed, but following request to replace entire content */}
+           
+           {/* Card Overlays */}
+           <div className="relative z-20 flex flex-col h-full pointer-events-none">
+              {/* Top Section */}
+              <div className="flex justify-between items-start w-full">
+                {/* Badge (Top Left) */}
+                {(isCharacter || isPanorama) && (
+                  <div className={`${isCharacter ? 'bg-[#5e17eb]' : 'bg-[#175beb]'} text-white text-[11px] font-bold px-2 py-1 rounded-br-xl shadow-lg border-r border-b border-white/20`}>
+                    {asset.card_number}
+                  </div>
+                )}
+                
+                {/* Instruction / Position Indicator (Top Center) */}
+                {isCharacter && (
+                  <div className="flex-1 px-4 py-1 text-[8px] leading-[1.1] text-white text-right font-medium drop-shadow-md">
+                    Slide any Status cards (red cards) <br/> you receive beneath this card.
+                  </div>
+                )}
+                {isPanorama && (
+                  <div className="flex-1 flex justify-center pt-2">
+                    <div className="bg-white/20 backdrop-blur-sm px-1.5 py-0.5 rounded border border-white/30 text-[9px] text-white font-mono">
+                      {asset.card_number}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="mt-auto">
+                {/* Bottom Bar (Name/Description) */}
+                {isCharacter && (
+                  <div className="w-full bg-white/95 backdrop-blur-sm py-1.5 border-t border-black/10 shadow-[0_-4px_10px_rgba(0,0,0,0.1)]">
+                    <div className="text-black text-center text-sm font-bold tracking-tight uppercase line-clamp-1 px-2">
+                      {asset.content_front}
+                    </div>
+                  </div>
+                )}
+                {isPanorama && (
+                  <div className="mx-2 mb-2 bg-white/90 backdrop-blur-sm p-3 rounded-lg border border-black/5 shadow-lg">
+                    <div className="text-zinc-800 text-center text-[10px] leading-snug font-medium line-clamp-3">
+                      {asset.content_front}
+                    </div>
+                  </div>
+                )}
+              </div>
+           </div>
+
+           {(isWindow || isAction) && (
+             <div className="absolute inset-0 ring-1 ring-inset ring-cyan-400/30 pointer-events-none" />
+           )}
         </div>
       ) : (
         <>
