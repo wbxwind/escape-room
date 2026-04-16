@@ -58,7 +58,7 @@ Last updated: 2026-04-16
   - [x] `migrations/seed_room.sql`
   - [x] `migrations/seed_cards.sql` (126 rows)
   - [x] `migrations/seed_interactions.sql` (55 interaction pairs)
-  - [ ] Apply to Supabase & verify count query
+  - [x] Apply to Supabase & verify count query ✅ (126 cards, 55 interactions)
 
 - [ ] **Card Gen B** — Card art
   - [x] `story/LEONARDO_PROMPTS.md` (prompts for all 122 PENDING_MANUAL cards) ✅
@@ -77,4 +77,4 @@ Last updated: 2026-04-16
 - [ ] Drag-and-drop works across all zones (needs browser review)
 - [ ] Realtime sync works (two browser windows)
 - [ ] No regressions (voice HUD, room switching, draw-by-number)
-- [ ] Apply Supabase migrations + verify card counts
+- [x] Apply Supabase migrations + verify card counts ✅
