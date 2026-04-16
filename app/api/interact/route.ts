@@ -11,29 +11,41 @@ export async function POST(req: NextRequest) {
 
     const supabase = createServerClient()
 
-    // Look up a defined interaction for this action + situation pair
-    const { data: interaction } = await supabase
-      .from('interactions')
-      .select('*')
-      .eq('action_card_id', actionId)
-      .eq('situation_card_id', panoramaId)
-      .maybeSingle()
+    // Fetch the action card and situation card in parallel
+    const [{ data: actionCard }, { data: situationCard }, { data: interaction }] = await Promise.all([
+      supabase.from('game_assets').select('type, title').eq('id', actionId).maybeSingle(),
+      supabase.from('game_assets').select('title, content_back').eq('id', panoramaId).maybeSingle(),
+      supabase.from('interactions')
+        .select('*')
+        .eq('action_card_id', actionId)
+        .eq('situation_card_id', panoramaId)
+        .maybeSingle(),
+    ])
 
-    // Discard the action card — persists via card_positions so all clients see it
-    const { error } = await supabase
-      .from('card_positions')
-      .upsert(
-        { room_code: roomCode, asset_id: actionId, current_zone: 'DISCARD', panorama_slot: null, updated_at: new Date().toISOString() },
-        { onConflict: 'room_code,asset_id' },
-      )
+    // The action card stays in the panorama overlaid on the situation card.
+    // Players drag it away manually when done — do NOT auto-discard.
 
-    if (error) console.error('Interact persist error:', error)
+    // Determine what to reveal:
+    // 1. Use the interaction table's effect_text if defined
+    // 2. Fall back to the situation card's content_back
+    // 3. Last resort: a generic type-based message
+    const isWindow = (actionCard?.type ?? '').includes('WINDOW')
+    const isNotch  = (actionCard?.type ?? '').includes('NOTCH')
 
-    const message = interaction
-      ? `Interaction resolved: ${interaction.result_type}`
-      : `Action used — discarded to the pile.`
+    let reveal: string | null = null
+    if (interaction?.effect_text) {
+      reveal = interaction.effect_text
+    } else if (situationCard?.content_back) {
+      reveal = situationCard.content_back
+    } else if (isWindow) {
+      reveal = `The window shows nothing unusual about ${situationCard?.title ?? 'this location'}.`
+    } else if (isNotch) {
+      reveal = `The notch finds no matching mechanism at ${situationCard?.title ?? 'this location'}.`
+    } else {
+      reveal = `No result defined for this combination.`
+    }
 
-    return NextResponse.json({ success: true, message, interaction })
+    return NextResponse.json({ success: true, message: reveal, interaction })
   } catch (err) {
     console.error('Interact route error:', err)
     return NextResponse.json({ success: false, message: 'Invalid request.' }, { status: 400 })

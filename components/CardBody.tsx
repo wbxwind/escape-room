@@ -205,10 +205,17 @@ function SituationCard({ asset, enlarged }: { asset: JoinedAsset; enlarged: bool
       <div className="absolute top-1.5 right-1.5 z-20">
         <div className="card-type-badge bg-yellow-900/70 text-yellow-200">Situation</div>
       </div>
-      <div className="absolute bottom-0 left-0 right-0 z-20 px-2 pb-2 pt-1">
-        <div className={`parchment-text font-semibold text-amber-100 leading-snug line-clamp-3 text-center drop-shadow ${enlarged ? 'text-sm' : 'text-[9px]'}`}>{asset.content_front}</div>
+      <div className="absolute bottom-0 left-0 right-0 z-20 px-2 pb-2 pt-1"
+        style={{ background: 'linear-gradient(to top, rgba(10,6,2,0.92) 60%, transparent)' }}>
+        <div className={`font-semibold text-amber-50 leading-snug line-clamp-3 text-center ${enlarged ? 'text-sm' : 'text-[9px]'}`}
+          style={{ textShadow: '0 1px 4px rgba(0,0,0,0.9)' }}>
+          {asset.content_front}
+        </div>
         {asset.title && (
-          <div className={`parchment-text italic text-amber-300/70 text-center mt-0.5 line-clamp-1 ${enlarged ? 'text-xs' : 'text-[8px]'}`}>{asset.title}</div>
+          <div className={`italic text-amber-400/80 text-center mt-0.5 line-clamp-1 ${enlarged ? 'text-xs' : 'text-[8px]'}`}
+            style={{ textShadow: '0 1px 3px rgba(0,0,0,0.9)' }}>
+            {asset.title}
+          </div>
         )}
       </div>
     </>

@@ -262,9 +262,14 @@ function BoardView({ game }: { game: ReturnType<typeof useGameBoard> }) {
 
                   <SlotColumn label="Story — read aloud">
                     <DropZone id="zone-STORY" label="[ STORY ]" className="w-[140px] h-[210px] md:w-[150px] md:h-[225px]">
-                      {items.find(i => i.current_zone === 'STORY_ZONE') && (
-                        <DraggableCard asset={items.find(i => i.current_zone === 'STORY_ZONE')!} />
-                      )}
+                      {(() => {
+                        const storyCard = items.find(i => i.current_zone === 'STORY_ZONE')
+                        return storyCard ? (
+                          <div onDoubleClick={() => setInspectAsset(storyCard)}>
+                            <DraggableCard asset={storyCard} />
+                          </div>
+                        ) : null
+                      })()}
                     </DropZone>
                   </SlotColumn>
                 </div>

@@ -56,10 +56,11 @@ export function useGameBoard(): GameBoardState {
     useSensor(TouchSensor,   { activationConstraint: { delay: 150, tolerance: 5 } }),
   )
 
-  // Auto-dismiss toasts
+  // Auto-dismiss toasts — longer for reveal text (interaction results)
   useEffect(() => {
     if (!toast) return
-    const t = setTimeout(() => setToast(null), 4000)
+    const isReveal = toast.length > 80
+    const t = setTimeout(() => setToast(null), isReveal ? 12000 : 4000)
     return () => clearTimeout(t)
   }, [toast])
 
