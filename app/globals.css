@@ -5,6 +5,22 @@
    Premium tabletop aesthetic: felt board, physical cards, warm amber HUD
    ═══════════════════════════════════════════════════════════════ */
 :root {
+  /* ── Fluid card dimensions — scale with viewport ── */
+  /* clamp(min, preferred, max) — stays 100px on phones, grows on desktop */
+  --card-w:    clamp(100px, 9vw, 210px);
+  --card-h:    calc(var(--card-w) * 1.5);
+  /* Enlarged (inspect modal) */
+  --card-w-lg: clamp(240px, 20vw, 320px);
+  --card-h-lg: calc(var(--card-w-lg) * 1.5);
+  /* Inter-card gap — scales with card size */
+  --card-gap:  clamp(8px, 0.85vw, 18px);
+
+  /* ── Safe area insets (notch / home indicator) ── */
+  --safe-top:    env(safe-area-inset-top,    0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left:   env(safe-area-inset-left,   0px);
+  --safe-right:  env(safe-area-inset-right,  0px);
+
   /* Board surfaces */
   --felt-bg:        #0c1f28;
   --felt-dark:      #07131a;
@@ -61,7 +77,14 @@ body {
   color: var(--foreground);
   font-family: var(--font-geist-sans), 'Inter', system-ui, sans-serif;
   overflow: hidden;
+  /* Respect device safe areas (iPhone notch, home indicator, etc.) */
+  padding-top: var(--safe-top);
+  padding-left: var(--safe-left);
+  padding-right: var(--safe-right);
 }
+
+/* Full-height using dynamic viewport height (accounts for mobile browser chrome) */
+.h-dvh { height: 100dvh; }
 
 /* ═══════════════════════════════════════════════════════════════
    BOARD GRID — Panorama area texture + drag pulse
@@ -111,6 +134,9 @@ body {
    CARD BASE
    ═══════════════════════════════════════════════════════════════ */
 .card-base {
+  container-type: inline-size;
+  container-name: card;
+  aspect-ratio: 2 / 3;
   position: relative;
   cursor: grab;
   transition: box-shadow 0.2s ease, border-color 0.2s ease, transform 0.15s ease;
@@ -351,13 +377,12 @@ body {
    ═══════════════════════════════════════════════════════════════ */
 .window-cutout {
   position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  width: 56%;
-  height: 38%;
-  border: 2px dashed rgba(0, 220, 240, 0.5);
-  border-radius: 4px;
+  left: 15%;
+  right: 15%;
+  top: 25%;
+  bottom: 25%;
+  border: 1cqi dashed rgba(0, 220, 240, 0.5);
+  border-radius: 2cqi;
   background: rgba(0, 200, 230, 0.04);
   backdrop-filter: blur(2px);
   box-shadow: inset 0 0 12px rgba(0, 220, 240, 0.12), 0 0 12px rgba(0, 220, 240, 0.15);
@@ -368,9 +393,9 @@ body {
 .window-cutout::before {
   content: '';
   position: absolute;
-  inset: 4px;
-  border: 1px solid rgba(0, 220, 240, 0.2);
-  border-radius: 2px;
+  inset: 2cqi;
+  border: 0.5cqi solid rgba(0, 220, 240, 0.2);
+  border-radius: 1cqi;
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -381,13 +406,13 @@ body {
   right: -1px;
   top: 50%;
   transform: translateY(-50%);
-  width: 22px;
-  height: 44px;
+  width: 11cqi;
+  height: 22cqi;
   background: var(--felt-bg);
-  border-radius: 22px 0 0 22px;
-  border-left: 2px solid rgba(132, 204, 22, 0.5);
-  border-top: 2px solid rgba(132, 204, 22, 0.5);
-  border-bottom: 2px solid rgba(132, 204, 22, 0.5);
+  border-radius: 11cqi 0 0 11cqi;
+  border-left: 1cqi solid rgba(132, 204, 22, 0.5);
+  border-top: 1cqi solid rgba(132, 204, 22, 0.5);
+  border-bottom: 1cqi solid rgba(132, 204, 22, 0.5);
   box-shadow: -4px 0 12px rgba(132, 204, 22, 0.15), inset 2px 0 8px rgba(0, 0, 0, 0.4);
   pointer-events: none;
   z-index: 30;
@@ -413,8 +438,8 @@ body {
    ═══════════════════════════════════════════════════════════════ */
 .gold-frame {
   position: absolute;
-  inset: 4px;
-  border: 1px solid rgba(201, 162, 39, 0.35);
+  inset: 2cqi;
+  border: 0.5cqi solid rgba(201, 162, 39, 0.35);
   border-radius: inherit;
   pointer-events: none;
   z-index: 5;
@@ -423,8 +448,8 @@ body {
 .gold-frame::before {
   content: '';
   position: absolute;
-  inset: 3px;
-  border: 1px solid rgba(201, 162, 39, 0.15);
+  inset: 1.5cqi;
+  border: 0.5cqi solid rgba(201, 162, 39, 0.15);
   border-radius: inherit;
 }
 
@@ -433,11 +458,11 @@ body {
    ═══════════════════════════════════════════════════════════════ */
 .card-number-badge {
   font-family: var(--font-geist-mono), monospace;
-  font-size: 10px;
+  font-size: 5cqi;
   font-weight: 600;
   letter-spacing: 0.05em;
-  padding: 2px 6px;
-  border-radius: 0 0 6px 0;
+  padding: 1cqi 3cqi;
+  border-radius: 0 0 3cqi 3cqi;
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -445,12 +470,12 @@ body {
    ═══════════════════════════════════════════════════════════════ */
 .card-type-badge {
   font-family: var(--font-geist-mono), monospace;
-  font-size: 9px;
+  font-size: 4cqi;
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
-  padding: 2px 7px;
-  border-radius: 99px;
+  padding: 1cqi 3.5cqi;
+  border-radius: 50cqi;
 }
 
 /* ═══════════════════════════════════════════════════════════════
@@ -593,7 +618,16 @@ body {
   display: flex;
   align-items: flex-end;
   justify-content: center;
-  padding-bottom: 8px;
+  padding-bottom: calc(8px + var(--safe-bottom));
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   FROSTED GLASS — reusable glassmorphism token
+   ═══════════════════════════════════════════════════════════════ */
+.glass-panel {
+  background: rgba(7, 13, 20, 0.7);
+  backdrop-filter: blur(16px) saturate(140%);
+  border: 1px solid rgba(255, 255, 255, 0.07);
 }
 
 /* ═══════════════════════════════════════════════════════════════

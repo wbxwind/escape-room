@@ -99,7 +99,7 @@ function BoardView({ game }: { game: ReturnType<typeof useGameBoard> }) {
 
   return (
     <DndContext sensors={sensors} collisionDetection={rectIntersection} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
-      <main className="h-screen w-screen flex flex-col overflow-hidden relative" style={{ background: 'var(--felt-bg)' }}>
+      <main className="h-dvh w-screen flex flex-col overflow-hidden relative" style={{ background: 'var(--felt-bg)' }}>
 
         {/* ── HUD Header ──────────────────────────────────────────── */}
         <header className="game-hud flex-none px-4 py-2.5 flex items-center justify-between z-10">
@@ -183,7 +183,7 @@ function BoardView({ game }: { game: ReturnType<typeof useGameBoard> }) {
         <div className="flex-1 flex min-h-0 overflow-hidden">
 
           {/* Left sidebar — sessions + voice HUD */}
-          <aside className="flex-none w-[116px] md:w-[200px] border-r border-[rgba(255,255,255,0.05)] flex flex-col overflow-hidden" style={{ background: 'rgba(7,13,20,0.6)' }}>
+          <aside className="flex-none w-[80px] sm:w-[116px] md:w-[200px] border-r border-[rgba(255,255,255,0.05)] flex flex-col overflow-hidden" style={{ background: 'rgba(7,13,20,0.6)', paddingLeft: 'var(--safe-left)' }}>
             <div className="flex-1 overflow-y-auto p-3 flex flex-col gap-4">
 
               <div>
@@ -250,18 +250,18 @@ function BoardView({ game }: { game: ReturnType<typeof useGameBoard> }) {
 
             {/* Board area */}
             <div className={`flex-1 board-grid overflow-auto flex items-center justify-center p-4 md:p-8 ${isDragging ? 'board-grid-active' : ''}`}>
-              <div className="flex items-start gap-8 md:gap-12 flex-wrap justify-center">
+              <div className="flex items-start flex-wrap justify-center" style={{ gap: 'calc(var(--card-gap) * 3)' }}>
 
                 {/* Left column: Objective + Story zone */}
-                <div className="flex flex-col gap-5 flex-none">
+                <div className="flex flex-col flex-none" style={{ gap: 'var(--card-gap)' }}>
                   <SlotColumn label="Objective">
-                    <DropZone id="zone-OBJECTIVE" label="[ OBJECTIVE ]" className="w-[140px] h-[210px] md:w-[150px] md:h-[225px]">
+                    <DropZone id="zone-OBJECTIVE" label="[ OBJECTIVE ]" className="w-[var(--card-w)] h-[var(--card-h)]">
                       <ObjectiveSlot items={items} activeId={activeId} onInspect={setInspectAsset} />
                     </DropZone>
                   </SlotColumn>
 
                   <SlotColumn label="Story — read aloud">
-                    <DropZone id="zone-STORY" label="[ STORY ]" className="w-[140px] h-[210px] md:w-[150px] md:h-[225px]">
+                    <DropZone id="zone-STORY" label="[ STORY ]" className="w-[var(--card-w)] h-[var(--card-h)]">
                       {(() => {
                         const storyCard = items.find(i => i.current_zone === 'STORY_ZONE')
                         return storyCard ? (
@@ -280,7 +280,7 @@ function BoardView({ game }: { game: ReturnType<typeof useGameBoard> }) {
                   <p className="text-[9px] text-zinc-600 font-mono mb-4 text-center max-w-[380px] leading-snug">
                     Place Situation cards in slots · Drop Action cards onto them to interact
                   </p>
-                  <div className="grid grid-cols-4 grid-rows-2 gap-3 md:gap-5 w-fit">
+                  <div className="grid grid-cols-4 grid-rows-2 w-fit" style={{ gap: 'var(--card-gap)' }}>
                     {[1, 2, 3, 4, 5, 6, 7, 8].map(slot => (
                       <PanoramaSlot key={slot} slot={slot} items={items} onInspect={setInspectAsset} />
                     ))}
@@ -291,14 +291,15 @@ function BoardView({ game }: { game: ReturnType<typeof useGameBoard> }) {
             </div>
 
             {/* Player Area — hand of action/issue cards */}
-            <div className="flex-none border-t border-[rgba(255,255,255,0.05)]" style={{ background: 'rgba(5,10,15,0.6)' }}>
+            <div className="flex-none border-t border-[rgba(255,255,255,0.05)]" style={{ background: 'rgba(5,10,15,0.6)', paddingBottom: 'var(--safe-bottom)' }}>
               <div className="px-4 pt-2 pb-0 flex items-center justify-between">
                 <span className="zone-label text-[9px]">Player Area</span>
                 <span className="text-[9px] font-mono text-zinc-600">Action &amp; Issue cards</span>
               </div>
               <DropZone
                 id="zone-PLAYER_AREA"
-                className="h-44 md:h-56 p-3 md:p-4 !rounded-none !border-0 !bg-transparent flex items-end overflow-x-auto"
+                className="p-3 md:p-4 !rounded-none !border-0 !bg-transparent flex items-end overflow-x-auto"
+                style={{ height: 'calc(var(--card-h) * 0.85 + 24px)' }}
               >
                 <div className="hand-fan-container flex gap-2 items-end mx-auto px-4 w-full">
                   {items.filter(i => i.current_zone === 'PLAYER_AREA').map((item, idx, arr) => {
@@ -333,8 +334,8 @@ function BoardView({ game }: { game: ReturnType<typeof useGameBoard> }) {
           {/* Right sidebar — discard pile */}
           <div
             id="zone-DISCARD-wrapper"
-            className="flex-none w-[100px] md:w-[140px] border-l border-[rgba(255,255,255,0.05)] flex flex-col items-center overflow-hidden"
-            style={{ background: 'rgba(7,13,20,0.6)' }}
+            className="flex-none w-[72px] sm:w-[100px] md:w-[140px] border-l border-[rgba(255,255,255,0.05)] flex flex-col items-center overflow-hidden"
+            style={{ background: 'rgba(7,13,20,0.6)', paddingRight: 'var(--safe-right)' }}
           >
           <DropZone
             id="zone-DISCARD"
@@ -487,7 +488,7 @@ function PanoramaSlot({
     })
 
   return (
-    <DropZone id={`panorama-${slot}`} label={`[ ${slot} ]`} className="w-[140px] h-[210px] md:w-[150px] md:h-[225px]">
+    <DropZone id={`panorama-${slot}`} label={`[ ${slot} ]`} className="w-[var(--card-w)] h-[var(--card-h)]">
       <div className="relative w-full h-full flex items-center justify-center">
         {slotItems.map((item, idx) => (
           <div

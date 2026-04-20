@@ -1,6 +1,21 @@
 {
+  "permissions": {
+    "allow": [
+      "mcp__supabase__apply_migration",
+      "Bash(npx tsc *)",
+      "Bash(curl *)",
+      "mcp__supabase__execute_sql",
+      "Read(//c/Users/Serge/Documents/Vide Coding Projects/everything-claude-code/**)",
+      "Read(//c/Users/Serge/Documents/**)",
+      "Bash(node *)",
+      "Bash(npx next *)",
+      "WebSearch",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(dir *)"
+    ]
+  },
+  "enableAllProjectMcpServers": true,
   "enabledMcpjsonServers": [
     "supabase"
-  ],
-  "enableAllProjectMcpServers": true
+  ]
 }

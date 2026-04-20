@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono, Playfair_Display, Crimson_Text } from "next/font/google";
 import "./globals.css";
 
@@ -26,6 +26,13 @@ const crimson = Crimson_Text({
   display: "swap",
 });
 
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  viewportFit: 'cover',
+  themeColor: '#0c1f28',
+}
+
 export const metadata: Metadata = {
   title: "Backstories — Digital Game Engine",
   description: "A real-time multiplayer digital engine for the Backstories cooperative narrative card game. Drag and drop action cards onto panoramas to interact.",
@@ -39,9 +46,9 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} ${playfair.variable} ${crimson.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} ${playfair.variable} ${crimson.variable} antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="flex flex-col overflow-hidden">{children}</body>
     </html>
   );
 }

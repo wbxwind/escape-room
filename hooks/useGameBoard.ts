@@ -7,7 +7,9 @@ export interface GameBoardState {
   items: JoinedAsset[]
   loading: boolean
   toast: string | null
+  toastSticky: boolean
   setToast: (msg: string | null) => void
+  dismissToast: () => void
   activeId: string | null
   roomCode: string | null
   setRoomCode: (code: string) => void
@@ -25,6 +27,18 @@ export interface GameBoardState {
   handleDragEnd: (e: DragEndEvent) => Promise<void>
   drawCard: () => Promise<void>
   drawCardByNumber: (cardNumber: string) => Promise<void>
+  resetGame: () => Promise<void>
+}
+
+/** UUID v4 fallback for non-secure contexts (HTTP on local network). */
+function generateId(): string {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID()
+  }
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+    const r = Math.random() * 16 | 0
+    return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16)
+  })
 }
 
 /** Normalise zone strings from DB/legacy values to the canonical set. */
@@ -41,6 +55,7 @@ export function useGameBoard(): GameBoardState {
   const [items, setItems]                       = useState<JoinedAsset[]>([])
   const [loading, setLoading]                   = useState(true)
   const [toast, setToast]                       = useState<string | null>(null)
+  const [toastSticky, setToastSticky]           = useState(false)
   const [activeId, setActiveId]                 = useState<string | null>(null)
   const [roomCode, setRoomCode]                 = useState<string | null>(null)
   const [availableRooms, setAvailableRooms]     = useState<string[]>([])
@@ -56,13 +71,17 @@ export function useGameBoard(): GameBoardState {
     useSensor(TouchSensor,   { activationConstraint: { delay: 150, tolerance: 5 } }),
   )
 
-  // Auto-dismiss toasts — longer for reveal text (interaction results)
+  const dismissToast = useCallback(() => {
+    setToast(null)
+    setToastSticky(false)
+  }, [])
+
+  // Auto-dismiss only non-sticky toasts
   useEffect(() => {
-    if (!toast) return
-    const isReveal = toast.length > 80
-    const t = setTimeout(() => setToast(null), isReveal ? 12000 : 4000)
+    if (!toast || toastSticky) return
+    const t = setTimeout(() => setToast(null), 4000)
     return () => clearTimeout(t)
-  }, [toast])
+  }, [toast, toastSticky])
 
   // ── Load rooms + participant sidebar ───────────────────────
 
@@ -115,7 +134,7 @@ export function useGameBoard(): GameBoardState {
         if (!cid) cid = localStorage.getItem('escape-room-id') ?? null
         if (!cname) cname = localStorage.getItem('escape-room-name') ?? null
         if (!cid || !cname) {
-          cid   = crypto.randomUUID()
+          cid   = generateId()
           cname = `Player-${Math.floor(Math.random() * 1000)}`
         }
         localStorage.setItem('backstories-id',   cid)
@@ -271,6 +290,7 @@ export function useGameBoard(): GameBoardState {
   }, [roomCode])
 
   const triggerInteract = useCallback(async (actionId: string, panoramaId: string) => {
+    setToastSticky(false)
     setToast('Resolving interaction...')
     const res  = await fetch('/api/interact', {
       method: 'POST',
@@ -278,7 +298,18 @@ export function useGameBoard(): GameBoardState {
       body: JSON.stringify({ actionId, panoramaId, roomCode }),
     })
     const data = await res.json()
-    if (data.message) setToast(data.message)
+    if (data.message) {
+      setToastSticky(true)
+      setToast(data.message)
+    }
+    // If a card was drawn server-side, sync local state immediately
+    if (data.drawnCard) {
+      setItems(prev => prev.map(i =>
+        i.id === data.drawnCard.id
+          ? { ...i, current_zone: data.drawnCard.zone as JoinedAsset['current_zone'], panorama_slot: null }
+          : i
+      ))
+    }
   }, [roomCode])
 
   /** Draw the next card from the top of the sorted deck (lowest card_number). */
@@ -299,37 +330,47 @@ export function useGameBoard(): GameBoardState {
    * Draw a specific card by its card_number (only valid if has_magnifying_glass is true).
    * Matches the "Discussing the Card Number" rule in the rulebook.
    */
-  const drawCardByNumber = useCallback(async (cardNumber: string) => {
-    const card = items.find(i => i.card_number === cardNumber.trim() && i.current_zone === 'DECK')
-    if (!card) return setToast(`Card #${cardNumber} is not in the deck.`)
+  const drawCardByNumber = useCallback(async (rawInput: string) => {
+    const inputNum = parseInt(rawInput.trim(), 10)
+    if (isNaN(inputNum)) return setToast(`"${rawInput.trim()}" is not a valid card number.`)
 
-    // Check magnifying glass permission in the interactions table
-    const { data: interaction } = await supabase
-      .from('interactions')
-      .select('has_magnifying_glass')
-      .or(`target_card_number.eq.${cardNumber}`)
-      .eq('has_magnifying_glass', true)
-      .maybeSingle()
-
-    // Also check game_assets for a direct has_magnifying_glass flag if it exists
-    // (the column may have been added in migration 002)
-    const assetRaw = card as JoinedAsset & { has_magnifying_glass?: boolean }
-    const allowed  = interaction !== null || assetRaw.has_magnifying_glass === true
-
-    if (!allowed) {
-      return setToast(`You need a magnifying glass icon to draw card #${cardNumber} directly.`)
-    }
+    const card = items.find(i =>
+      parseInt(i.card_number ?? '0', 10) === inputNum &&
+      i.current_zone === 'DECK'
+    )
+    if (!card) return setToast(`Card #${inputNum} is not in the deck.`)
 
     const type     = resolveCardType(card)
     const destZone = OBJECTIVE_TYPES.has(type) ? 'OBJECTIVE'
                    : type === 'STORY'           ? 'STORY_ZONE'
                    : 'PLAYER_AREA'
     await moveAsset(card.state_id, destZone, null)
-    setToast(`Drew card #${cardNumber}: ${card.title || ''}`)
+    setToast(`Drew: ${card.title || `Card #${card.card_number}`}`)
   }, [items, moveAsset])
+
+  const resetGame = useCallback(async () => {
+    if (!roomCode) return
+    // Delete all card_positions for this room — cards revert to their default_zone
+    const { error } = await supabase
+      .from('card_positions')
+      .delete()
+      .eq('room_code', roomCode)
+    if (error) { console.error('resetGame error:', error); return }
+    // Optimistic local reset
+    setItems(prev => prev.map(a => ({
+      ...a,
+      current_zone:  normaliseZone(a.default_zone),
+      panorama_slot: null,
+      attached_to:   null,
+    })))
+    setToast('Game reset — all cards returned to the deck.')
+  }, [roomCode])
 
   const handleDragStart = useCallback((e: DragStartEvent) => {
     setActiveId(e.active.id as string)
+    // Dismiss any sticky interaction toast when the player picks up a new card
+    setToast(null)
+    setToastSticky(false)
   }, [])
 
   const handleDragEnd = useCallback(async (e: DragEndEvent) => {
@@ -450,13 +491,13 @@ export function useGameBoard(): GameBoardState {
   }, [items, moveAsset, triggerInteract])
 
   return {
-    items, loading, toast, setToast,
+    items, loading, toast, toastSticky, setToast, dismissToast,
     activeId, roomCode, setRoomCode,
     availableRooms, roomParticipants,
     isMicMuted, setIsMicMuted,
     isDeafened, setIsDeafened,
     cachedId, liveKitToken, liveKitUrl,
     sensors, handleDragStart, handleDragEnd,
-    drawCard, drawCardByNumber,
+    drawCard, drawCardByNumber, resetGame,
   }
 }
