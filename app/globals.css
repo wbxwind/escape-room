@@ -90,6 +90,11 @@ body {
    BOARD GRID — Panorama area texture + drag pulse
    ═══════════════════════════════════════════════════════════════ */
 .board-grid {
+  /* Override --card-w so 5 columns + gaps always fit without scrollbars */
+  --card-w: min(
+    clamp(72px, calc((100vw - 420px) / 6), 175px),
+    clamp(72px, calc((100dvh - 220px) / 3.5), 175px)
+  );
   position: relative;
   background-image:
     linear-gradient(rgba(32, 180, 160, 0.05) 1px, transparent 1px),

@@ -11,6 +11,7 @@ import { DraggableCard, DropZone } from '@/components/board'
 import { VoiceHUD } from '@/components/VoiceHUD'
 import { MicOffIcon, AudioOffIcon } from '@/components/icons'
 import { resolveCardType, OBJECTIVE_TYPES } from '@/types'
+import { Deck } from '@/components/Deck'
 
 /** Seeded rotation: same card always tilts the same angle. */
 function seedRotation(id: string): number {
@@ -78,31 +79,22 @@ function BoardView({ game }: { game: ReturnType<typeof useGameBoard> }) {
     isDeafened, setIsDeafened,
     cachedId, sensors,
     handleDragStart, handleDragEnd,
-    drawCard, drawCardByNumber,
+    drawCard, drawCardByNumber, resetGame,
   } = game
 
-  const [drawOpen, setDrawOpen]   = useState(false)
-  const [drawInput, setDrawInput] = useState('')
+  const [resetOpen, setResetOpen]   = useState(false)
   const [inspectAsset, setInspectAsset] = useState<typeof items[0] | null>(null)
 
   const deckCount   = items.filter(i => i.current_zone === 'DECK').length
   const activeAsset = items.find(i => i.state_id === activeId)
   const isDragging  = activeId !== null
 
-  const handleDrawSubmit = useCallback(async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!drawInput.trim()) return
-    await drawCardByNumber(drawInput.trim())
-    setDrawInput('')
-    setDrawOpen(false)
-  }, [drawInput, drawCardByNumber])
-
   return (
     <DndContext sensors={sensors} collisionDetection={rectIntersection} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
       <main className="h-dvh w-screen flex flex-col overflow-hidden relative" style={{ background: 'var(--felt-bg)' }}>
 
         {/* ── HUD Header ──────────────────────────────────────────── */}
-        <header className="game-hud flex-none px-4 py-2.5 flex items-center justify-between z-10">
+        <header className="game-hud flex-none px-4 py-2.5 flex items-center justify-between z-50">
 
           {/* Left: brand + room */}
           <div className="flex items-center gap-4">
@@ -129,53 +121,43 @@ function BoardView({ game }: { game: ReturnType<typeof useGameBoard> }) {
             </select>
           </div>
 
-          {/* Right: draw controls */}
+          {/* Right: reset + draw by number */}
           <div className="flex items-center gap-2">
-            {/* Draw by number — magnifying glass */}
-            <div className="relative hidden md:block">
+
+            {/* Reset Game */}
+            <div className="relative">
               <button
-                onClick={() => setDrawOpen(d => !d)}
-                className="btn-game flex items-center gap-1.5 px-3 py-1.5 bg-black/30 border border-[rgba(255,255,255,0.1)] rounded-lg text-zinc-400 hover:text-zinc-200 hover:border-[rgba(255,255,255,0.2)] text-xs font-mono"
-                title="Draw by card number (magnifying glass rule)"
+                onClick={() => setResetOpen(o => !o)}
+                className="btn-game flex items-center gap-1.5 px-3 py-1.5 bg-black/30 border border-[rgba(255,255,255,0.1)] rounded-lg text-zinc-400 hover:text-red-400 hover:border-red-800/40 text-xs font-mono"
+                title="Reset game — return all cards to deck"
               >
-                <span>🔍</span>
-                <span>Draw #</span>
+                <span>↻</span>
+                <span className="hidden md:inline">Reset</span>
               </button>
 
-              {drawOpen && (
-                <div className="absolute top-full right-0 mt-2 draw-modal rounded-xl p-4 z-50 w-56">
-                  <div className="zone-label text-center mb-3">Draw by Number</div>
-                  <form onSubmit={handleDrawSubmit} className="flex flex-col gap-3">
-                    <input
-                      type="text"
-                      value={drawInput}
-                      onChange={e => setDrawInput(e.target.value)}
-                      placeholder="Card number..."
-                      autoFocus
-                      className="w-full bg-black/50 border border-[rgba(201,162,39,0.2)] text-amber-100 text-sm px-3 py-2 rounded-lg text-center font-mono placeholder:text-zinc-600 focus:outline-none focus:border-[rgba(201,162,39,0.5)]"
-                    />
-                    <div className="text-[10px] font-mono text-zinc-600 text-center leading-snug">
-                      Only cards with a magnifying glass icon can be drawn this way.
-                    </div>
+              {resetOpen && (
+                <div className="fixed top-14 right-0 draw-modal rounded-xl p-4 z-50 w-52">
+                  <div className="zone-label text-center mb-1" style={{ color: 'rgba(239,68,68,0.7)' }}>Reset Game</div>
+                  <p className="text-[10px] font-mono text-zinc-500 text-center leading-snug mb-4">
+                    All cards return to the deck. This cannot be undone.
+                  </p>
+                  <div className="flex gap-2">
                     <button
-                      type="submit"
-                      className="btn-game w-full py-1.5 bg-amber-900/50 border border-amber-700/30 text-amber-200 text-xs font-bold rounded-lg hover:bg-amber-900/70"
+                      onClick={() => setResetOpen(false)}
+                      className="btn-game flex-1 py-1.5 bg-black/40 border border-[rgba(255,255,255,0.1)] text-zinc-400 text-xs font-mono rounded-lg hover:text-zinc-200"
                     >
-                      Draw Card
+                      Cancel
                     </button>
-                  </form>
+                    <button
+                      onClick={() => { resetGame(); setResetOpen(false) }}
+                      className="btn-game flex-1 py-1.5 bg-red-950/60 border border-red-800/40 text-red-300 text-xs font-bold rounded-lg hover:bg-red-900/60"
+                    >
+                      Reset
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
-
-            {/* Draw next */}
-            <button
-              className="btn-game flex items-center gap-2 px-4 py-2 bg-gradient-to-b from-amber-900/60 to-amber-950/60 border border-amber-700/30 text-amber-200 font-bold rounded-lg hover:from-amber-900/80 hover:to-amber-950/80 text-sm shadow-[0_0_12px_rgba(180,100,20,0.2)]"
-              onClick={drawCard}
-            >
-              <span>Draw</span>
-              <span className="font-mono text-amber-400/70 text-xs">({deckCount})</span>
-            </button>
           </div>
         </header>
 
@@ -202,14 +184,12 @@ function BoardView({ game }: { game: ReturnType<typeof useGameBoard> }) {
                         )}
                       </button>
 
-                      {/* Player list with avatars */}
                       {roomParticipants[r]?.length > 0 && (
                         <div className="mt-1 pl-1 flex flex-col gap-1 border-l-2 border-[rgba(255,255,255,0.06)] ml-1">
                           {roomParticipants[r].map(p => {
                             const isSelf = p.user_id === cachedId
                             return (
                               <div key={p.user_id} className="flex items-center gap-1.5 py-0.5 group">
-                                {/* Avatar with initials */}
                                 <div
                                   className="player-avatar text-[9px] flex-none"
                                   style={avatarStyle(p.username)}
@@ -219,7 +199,6 @@ function BoardView({ game }: { game: ReturnType<typeof useGameBoard> }) {
                                 <span className={`truncate flex-1 text-[10px] font-medium ${isSelf ? 'text-amber-300/80' : 'text-slate-400'}`}>
                                   {isSelf ? 'You' : p.username}
                                 </span>
-                                {/* Mute/deafen icons */}
                                 <div className="flex gap-0.5 items-center shrink-0 opacity-50 group-hover:opacity-100 transition-opacity">
                                   {p.is_muted    && <MicOffIcon   className="w-2.5 h-2.5 text-red-500" />}
                                   {p.is_deafened && <AudioOffIcon className="w-2.5 h-2.5 text-orange-500" />}
@@ -235,7 +214,6 @@ function BoardView({ game }: { game: ReturnType<typeof useGameBoard> }) {
               </div>
             </div>
 
-            {/* Voice HUD at bottom */}
             <VoiceHUD
               isMicMuted={isMicMuted}
               setIsMicMuted={val => { setIsMicMuted(val); localStorage.setItem('backstories-mic-muted', String(val)) }}
@@ -248,8 +226,8 @@ function BoardView({ game }: { game: ReturnType<typeof useGameBoard> }) {
           {/* Center — board + player hand */}
           <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
 
-            {/* Board area */}
-            <div className={`flex-1 board-grid overflow-auto flex items-center justify-center p-4 md:p-8 ${isDragging ? 'board-grid-active' : ''}`}>
+            {/* Board area — no scrollbars, cards scale to fit */}
+            <div className={`flex-1 board-grid overflow-hidden flex items-center justify-center p-3 md:p-6 ${isDragging ? 'board-grid-active' : ''}`}>
               <div className="flex items-start flex-wrap justify-center" style={{ gap: 'calc(var(--card-gap) * 3)' }}>
 
                 {/* Left column: Objective + Story zone */}
@@ -290,7 +268,7 @@ function BoardView({ game }: { game: ReturnType<typeof useGameBoard> }) {
               </div>
             </div>
 
-            {/* Player Area — hand of action/issue cards */}
+            {/* Player Area — horizontal scrollable hand */}
             <div className="flex-none border-t border-[rgba(255,255,255,0.05)]" style={{ background: 'rgba(5,10,15,0.6)', paddingBottom: 'var(--safe-bottom)' }}>
               <div className="px-4 pt-2 pb-0 flex items-center justify-between">
                 <span className="zone-label text-[9px]">Player Area</span>
@@ -298,29 +276,19 @@ function BoardView({ game }: { game: ReturnType<typeof useGameBoard> }) {
               </div>
               <DropZone
                 id="zone-PLAYER_AREA"
-                className="p-3 md:p-4 !rounded-none !border-0 !bg-transparent flex items-end overflow-x-auto"
+                className="!rounded-none !border-0 !bg-transparent"
                 style={{ height: 'calc(var(--card-h) * 0.85 + 24px)' }}
               >
-                <div className="hand-fan-container flex gap-2 items-end mx-auto px-4 w-full">
-                  {items.filter(i => i.current_zone === 'PLAYER_AREA').map((item, idx, arr) => {
-                    const center = (arr.length - 1) / 2
-                    const fanAngle = (idx - center) * 2.5
-                    const fanOffset = Math.abs(idx - center) * -4
-                    return (
-                      <div
-                        key={item.state_id}
-                        style={{
-                          transform: `rotate(${fanAngle}deg) translateY(${fanOffset}px)`,
-                          transformOrigin: 'bottom center',
-                          transition: 'transform 0.2s ease',
-                          zIndex: idx,
-                        }}
-                        onDoubleClick={() => setInspectAsset(item)}
-                      >
-                        <DraggableCard asset={item} />
-                      </div>
-                    )
-                  })}
+                <div className="flex flex-row items-end overflow-x-auto gap-4 py-2 px-4 h-full">
+                  {items.filter(i => i.current_zone === 'PLAYER_AREA').map(item => (
+                    <div
+                      key={item.state_id}
+                      className="flex-shrink-0"
+                      onDoubleClick={() => setInspectAsset(item)}
+                    >
+                      <DraggableCard asset={item} />
+                    </div>
+                  ))}
                   {items.filter(i => i.current_zone === 'PLAYER_AREA').length === 0 && (
                     <div className="flex-1 flex items-center justify-center text-zinc-700 font-mono text-[10px] uppercase tracking-widest whitespace-nowrap">
                       Your hand is empty — draw cards to begin
@@ -331,47 +299,44 @@ function BoardView({ game }: { game: ReturnType<typeof useGameBoard> }) {
             </div>
           </div>
 
-          {/* Right sidebar — discard pile */}
+          {/* Right sidebar — Deck (top 1/4) + Discard (bottom 3/4) */}
           <div
             id="zone-DISCARD-wrapper"
-            className="flex-none w-[72px] sm:w-[100px] md:w-[140px] border-l border-[rgba(255,255,255,0.05)] flex flex-col items-center overflow-hidden"
+            className="flex-none w-[72px] sm:w-[100px] md:w-[140px] border-l border-[rgba(255,255,255,0.05)] flex flex-col h-full overflow-hidden"
             style={{ background: 'rgba(7,13,20,0.6)', paddingRight: 'var(--safe-right)' }}
           >
-          <DropZone
-            id="zone-DISCARD"
-            className="w-full flex-1 p-3 flex flex-col items-center overflow-hidden !rounded-none !border-0 !bg-transparent"
-          >
-            <h2 className="zone-label text-[9px] text-rose-900/70 mb-1 text-center">Discard</h2>
-            <div className="text-[8px] font-mono text-zinc-700 mb-3 text-center leading-tight">
-              Story cards after<br />reading aloud
+            {/* Deck section — flex-1 (top 1/4) */}
+            <div className="flex-1 flex flex-col items-center justify-center p-2 border-b border-[rgba(255,255,255,0.05)]">
+              <div className="zone-label text-[9px] mb-2 text-center">Deck</div>
+              <Deck deckCount={deckCount} onDraw={drawCard} onDrawByNumber={drawCardByNumber} />
             </div>
 
-            {/* Stacked cards with rotation */}
-            <div className="relative flex-1 w-full flex flex-col items-center pt-2">
-              {items.filter(i => i.current_zone === 'DISCARD').map((item, idx) => {
-                const rot = ((idx % 2 === 0) ? 1 : -1) * (2 + (idx % 3))
-                return (
+            {/* Discard section — flex-[3] (bottom 3/4), fully visible scrollable list */}
+            <DropZone
+              id="zone-DISCARD"
+              className="flex-[3] p-2 flex flex-col overflow-hidden !rounded-none !border-0 !bg-transparent"
+            >
+              <h2 className="zone-label text-[9px] text-rose-900/70 mb-1 text-center flex-none">Discard</h2>
+              <div className="text-[8px] font-mono text-zinc-700 mb-2 text-center leading-tight flex-none">
+                Story cards after<br />reading aloud
+              </div>
+              <div className="flex flex-col gap-3 overflow-y-auto px-1 pb-6 flex-1">
+                {items.filter(i => i.current_zone === 'DISCARD').map(item => (
                   <div
                     key={item.state_id}
-                    className="discard-stack-card absolute"
-                    style={{
-                      top: `${idx * 14}px`,
-                      zIndex: idx,
-                      transform: `rotate(${rot}deg)`,
-                    }}
+                    className="flex-shrink-0"
                     onDoubleClick={() => setInspectAsset(item)}
                   >
                     <DraggableCard asset={item} />
                   </div>
-                )
-              })}
-              {items.filter(i => i.current_zone === 'DISCARD').length === 0 && (
-                <div className="text-[8px] font-mono text-zinc-800 text-center mt-4 leading-snug">Empty</div>
-              )}
-            </div>
-          </DropZone>
+                ))}
+                {items.filter(i => i.current_zone === 'DISCARD').length === 0 && (
+                  <div className="text-[8px] font-mono text-zinc-800 text-center mt-4 leading-snug">Empty</div>
+                )}
+              </div>
+            </DropZone>
           </div>
-        </div>{/* end flex-1 flex min-h-0 row */}
+        </div>
 
         {/* ── Drag ghost overlay ──────────────────────────────────── */}
         <DragOverlay dropAnimation={null}>
@@ -416,9 +381,9 @@ function BoardView({ game }: { game: ReturnType<typeof useGameBoard> }) {
           </div>
         )}
 
-        {/* Click-away for draw modal */}
-        {drawOpen && (
-          <div className="fixed inset-0 z-40" onClick={() => setDrawOpen(false)} />
+        {/* Click-away for reset modal */}
+        {resetOpen && (
+          <div className="fixed inset-0 z-40" onClick={() => setResetOpen(false)} />
         )}
       </main>
     </DndContext>
