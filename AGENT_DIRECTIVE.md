@@ -1,51 +1,57 @@
-# Agent Directive: Deck Interaction Bugfix
+# Agent Directive: Fix Deck Input/Draw Race Condition
 
-## Objective
-The `components/Deck.tsx` currently has an interaction bug. The user notices that if they `mousedown` on the `<input>` element and drag out, releasing `mouseup` (firing `onClick`) on the main card container, it instantly triggers a draw. It should only trigger a draw on an explicit direct click/tap against the deck background itself.
+## The Problem
+Currently, the `components/Deck.tsx` interaction fails when clicking the deck to draw after typing a number. 
 
-## The Bug
-The `onClick` handler on the outmost `div.card-base` fires on `mouseup` as long as both down/up events happen inside the container. Since the input is an internal child, a drag gesture starting on the input and terminating on the background will cause `(e.target as HTMLElement).tagName === 'INPUT'` to evaluate as `false`, immediately executing `submitDraw()`.
+**Why it's failing:** 
+The card uses an `onClick` event to detect the draw action. In the browser event lifecycle, when you click outside an active `<input>`, the standard `blur` event fires *before* the `click` event. 
+1. User types in input.
+2. User clicks the deck wrapper.
+3. Input registers `onBlur` -> `setIsFocused(false)`.
+4. Deck wrapper registers `onClick` -> `handleCardClick` checks `isFocused` (which is now `false`), so instead of submitting, it just calls `.focus()` again!
 
-## Instructed Changes
+*This is why the user has to do a weird drag-release to avoid triggering a blur, or why clicking normally does nothing!*
 
-Open `components/Deck.tsx` and refactor the click detection strategy to be instantaneous and precise:
+## The Solution
 
-1. **Swap `onClick` to `onMouseDown`:**
-   On the root `.card-base` `div`, locate `onClick={handleCardClick}` and change it to `onMouseDown={handleCardClick}`. This ensures the action triggers instantly the moment the mouse presses down, rather than waiting for a release, completely eliminating "drag-and-release" bleeding from inputs.
+To fix this, we must intercept the interaction *before* the browser blurs the input. We do this by changing `onClick` to `onMouseDown`, which fires at the very beginning of the interaction cycle, while the input is still fully focused.
 
-2. **Halt Input Event Bubbling:**
-   To prevent `onMouseDown` from bubbling up when the user explicitly clicks inner form elements (like the text input), add an `onMouseDown` handler to the `<form>` wrapper that immediately calls `.stopPropagation()`.
+### Task: Modify `components/Deck.tsx`
 
-```tsx
-// 1. In your root Deck render:
-<div
-  className={`...`}
-  style={{ ... }}
-  onMouseDown={handleCardClick} // <--- Change from onClick
->
-```
+1. **Swap `onClick` for `onMouseDown`:**
+   Find the root `<div className="card-base ...">` and change its click handler:
+   ```tsx
+   // Change this:
+   onClick={handleCardClick}
+   
+   // To this:
+   onMouseDown={handleCardClick}
+   ```
 
-```tsx
-// 2. Around line 105, update the form wrapper:
-<form
-  onSubmit={handleSubmit}
-  onMouseDown={(e) => e.stopPropagation()} // <--- Add this to swallow clicks on the overlay
-  className={`...`}
->
-```
+2. **Prevent Event Fighting in the Handler:**
+   Update the `handleCardClick` function so it calls `e.preventDefault()`. Since `mousedown` is what normally causes the browser to shift focus and trigger `blur`, calling `preventDefault()` intercepts that default browser DOM behavior, ensuring our React state stays perfectly synced without race conditions.
 
-3. **Simplify `handleCardClick`:**
-   Since the `<form>` now completely swallows all mouse events targeted at the input, `handleCardClick` will only ever be fired when clicking hitting the actual grey deck background. You can safely remove the `e.target` check.
+   Replace `handleCardClick` with exactly this:
+   ```tsx
+   const handleCardClick = (e: React.MouseEvent) => {
+     // If the click is on the input itself, let the user type, don't draw.
+     if ((e.target as HTMLElement).tagName === 'INPUT') {
+       return
+     }
 
-```typescript
-// Replace the old handleCardClick with this simpler version:
-const handleCardClick = (e: React.MouseEvent) => {
-  if (!isFocused) {
-    inputRef.current?.focus()
-  } else {
-    submitDraw()
-  }
-}
-```
+     // Prevent the mousedown from firing a browser-level blur on the input
+     e.preventDefault()
 
-Please execute these logic swaps in `components/Deck.tsx`.
+     if (!isFocused) {
+       inputRef.current?.focus()
+     } else {
+       submitDraw()
+     }
+   }
+   ```
+
+### Verification
+Once the agent applies this, the flow will be perfect:
+1. Click the deck once -> Focuses.
+2. Type a number.
+3. Click the deck anywhere (not on the input text) -> Instantly triggers `submitDraw()`.

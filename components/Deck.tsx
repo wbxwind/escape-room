@@ -31,10 +31,13 @@ export function Deck({ deckCount, onDraw, onDrawByNumber }: DeckProps) {
   }
 
   const handleCardClick = (e: React.MouseEvent) => {
-    // If the click is on the input itself, let the user type, don't draw.
     if ((e.target as HTMLElement).tagName === 'INPUT') {
       return
     }
+
+    // Prevent mousedown from triggering browser-level blur on the input,
+    // keeping React state in sync before we read isFocused.
+    e.preventDefault()
 
     if (!isFocused) {
       inputRef.current?.focus()
@@ -51,7 +54,7 @@ export function Deck({ deckCount, onDraw, onDrawByNumber }: DeckProps) {
         background: 'linear-gradient(160deg, #3f3f46 0%, #18181b 100%)',
         cursor: 'pointer'
       }}
-      onClick={handleCardClick}
+      onMouseDown={handleCardClick}
     >
       {/* Decorative gold border frame */}
       <div 
