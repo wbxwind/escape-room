@@ -109,7 +109,10 @@ export function CardBody({ asset, enlarged = false }: CardBodyProps) {
   const widthClass = enlarged ? 'w-[var(--card-w-lg)]' : 'w-[var(--card-w)]'
 
   return (
-    <div className={`card-base flex-none border-[2px] ${isWindow ? 'border-dashed' : 'border-solid'} ${typeClass} ${widthClass} rounded-xl flex flex-col shadow-2xl relative overflow-hidden select-none`}>
+    <div
+      className={`card-base flex-none border-[2px] ${isWindow ? 'border-dashed' : 'border-solid'} ${typeClass} ${widthClass} rounded-xl flex flex-col shadow-2xl relative overflow-hidden select-none`}
+      style={enlarged ? { overflowY: 'auto' } : undefined}
+    >
       {isNotch && <div className="notch-cutout" />}
       <CardTypeRenderer asset={asset} cardType={cardType} enlarged={enlarged} />
     </div>
@@ -123,17 +126,17 @@ function CardTypeRenderer({ asset, cardType, enlarged }: { asset: JoinedAsset; c
   switch (cardType) {
     case 'CHARACTER':                return <CharacterCard  asset={asset} enlarged={enlarged} />
     case 'SITUATION':
-    case 'PANORAMA':                 return <SituationCard  asset={asset} />
-    case 'STORY':                    return <StoryCard      asset={asset} />
-    case 'ISSUE':                    return <IssueCard      asset={asset} />
+    case 'PANORAMA':                 return <SituationCard  asset={asset} enlarged={enlarged} />
+    case 'STORY':                    return <StoryCard      asset={asset} enlarged={enlarged} />
+    case 'ISSUE':                    return <IssueCard      asset={asset} enlarged={enlarged} />
     case 'ACTION_WINDOW':
     case 'WINDOW':
-    case 'ACTION':                   return <WindowCard     asset={asset} />
+    case 'ACTION':                   return <WindowCard     asset={asset} enlarged={enlarged} />
     case 'NOTCH':
-    case 'ACTION_NOTCH':             return <NotchCard      asset={asset} />
-    case 'STATUS':                   return <StatusCard     asset={asset} />
-    case 'ENDING':                   return <EndingCard     asset={asset} />
-    default:                         return <DefaultCard    asset={asset} />
+    case 'ACTION_NOTCH':             return <NotchCard      asset={asset} enlarged={enlarged} />
+    case 'STATUS':                   return <StatusCard     asset={asset} enlarged={enlarged} />
+    case 'ENDING':                   return <EndingCard     asset={asset} enlarged={enlarged} />
+    default:                         return <DefaultCard    asset={asset} enlarged={enlarged} />
   }
 }
 
@@ -214,7 +217,7 @@ const SITUATION_PATTERNS = [
 ]
 const SITUATION_BG_SIZES = ['14cqi 12cqi', '5cqi 5cqi', '10cqi 10cqi', '8cqi 8cqi']
 
-function SituationCard({ asset }: { asset: JoinedAsset }) {
+function SituationCard({ asset, enlarged = false }: { asset: JoinedAsset; enlarged?: boolean }) {
   const p = seedPattern(asset.card_number)
   return (
     <>
@@ -238,14 +241,14 @@ function SituationCard({ asset }: { asset: JoinedAsset }) {
         style={{ padding: '2cqi', background: 'linear-gradient(to top, rgba(10,6,2,0.92) 60%, transparent)' }}
       >
         <div
-          className="font-semibold text-amber-50 leading-snug line-clamp-3 text-center"
+          className={`font-semibold text-amber-50 leading-snug text-center ${enlarged ? '' : 'line-clamp-3'}`}
           style={{ fontSize: '4.5cqi', textShadow: '0 1px 4px rgba(0,0,0,0.9)' }}
         >
           {asset.content_front}
         </div>
         {asset.title && (
           <div
-            className="italic text-amber-400/80 text-center line-clamp-1"
+            className={`italic text-amber-400/80 text-center ${enlarged ? '' : 'line-clamp-1'}`}
             style={{ fontSize: '4cqi', marginTop: '1cqi', textShadow: '0 1px 3px rgba(0,0,0,0.9)' }}
           >
             {asset.title}
@@ -282,7 +285,7 @@ function SituationPlaceholder({ title, pattern }: { title: string; pattern: numb
 // ─────────────────────────────────────────────────────────────────────
 // STORY
 // ─────────────────────────────────────────────────────────────────────
-function StoryCard({ asset }: { asset: JoinedAsset }) {
+function StoryCard({ asset, enlarged = false }: { asset: JoinedAsset; enlarged?: boolean }) {
   const p = seedPattern(asset.card_number)
   const num = parseInt(asset.card_number ?? '0', 10)
   const act = num <= 65 ? 'I' : num <= 140 ? 'II' : 'III'
@@ -317,7 +320,7 @@ function StoryCard({ asset }: { asset: JoinedAsset }) {
       </div>
 
       <div
-        className="relative z-20 font-bold text-white leading-tight line-clamp-2"
+        className={`relative z-20 font-bold text-white leading-tight ${enlarged ? '' : 'line-clamp-2'}`}
         style={{ padding: '0 6cqi', marginBottom: '4cqi', fontSize: '6cqi', fontFamily: 'var(--font-playfair)' }}
       >
         {asset.title}
@@ -325,8 +328,8 @@ function StoryCard({ asset }: { asset: JoinedAsset }) {
 
       <div className="relative z-20 h-px bg-gradient-to-r from-transparent via-[rgba(201,162,39,0.4)] to-transparent" style={{ margin: '0 6cqi 4cqi' }} />
 
-      <div className="relative z-20 flex-1 parchment-area rounded-lg overflow-hidden" style={{ margin: '0 4cqi 4cqi', padding: '4cqi' }}>
-        <p className="parchment-text leading-snug line-clamp-7" style={{ fontSize: '4.5cqi' }}>
+      <div className={`relative z-20 flex-1 parchment-area rounded-lg ${enlarged ? 'overflow-y-auto' : 'overflow-hidden'}`} style={{ margin: '0 4cqi 4cqi', padding: '4cqi' }}>
+        <p className="parchment-text leading-snug" style={{ fontSize: '4.5cqi' }}>
           {asset.content_front}
         </p>
       </div>
@@ -339,7 +342,7 @@ function StoryCard({ asset }: { asset: JoinedAsset }) {
 // ─────────────────────────────────────────────────────────────────────
 // ISSUE
 // ─────────────────────────────────────────────────────────────────────
-function IssueCard({ asset }: { asset: JoinedAsset }) {
+function IssueCard({ asset, enlarged = false }: { asset: JoinedAsset; enlarged?: boolean }) {
   return (
     <>
       <div className="absolute inset-0" style={{ background: 'linear-gradient(160deg, #2a1400 0%, #170c00 100%)' }}>
@@ -367,14 +370,14 @@ function IssueCard({ asset }: { asset: JoinedAsset }) {
       </div>
 
       <div
-        className="relative z-20 font-bold text-amber-200 leading-tight line-clamp-2"
+        className={`relative z-20 font-bold text-amber-200 leading-tight ${enlarged ? '' : 'line-clamp-2'}`}
         style={{ padding: '3cqi 4cqi 2cqi', fontSize: '5cqi', fontFamily: 'var(--font-playfair)' }}
       >
         {asset.title}
       </div>
 
       <div
-        className="relative z-20 flex-1 text-amber-100/80 leading-[1.45] line-clamp-8"
+        className={`relative z-20 flex-1 text-amber-100/80 leading-[1.45] ${enlarged ? 'overflow-y-auto min-h-0' : 'line-clamp-8'}`}
         style={{ fontSize: '4cqi', padding: '0 4cqi 0 14cqi', fontFamily: 'var(--font-crimson)' }}
       >
         {asset.content_front}
@@ -405,7 +408,7 @@ function IssueCard({ asset }: { asset: JoinedAsset }) {
 // ─────────────────────────────────────────────────────────────────────
 // ACTION_WINDOW / WINDOW
 // ─────────────────────────────────────────────────────────────────────
-function WindowCard({ asset }: { asset: JoinedAsset }) {
+function WindowCard({ asset, enlarged = false }: { asset: JoinedAsset; enlarged?: boolean }) {
   return (
     <>
       <div className="absolute inset-0" style={{
@@ -430,7 +433,7 @@ function WindowCard({ asset }: { asset: JoinedAsset }) {
       </div>
 
       <div
-        className="relative z-20 font-bold text-cyan-100 leading-tight line-clamp-2"
+        className={`relative z-20 font-bold text-cyan-100 leading-tight ${enlarged ? '' : 'line-clamp-2'}`}
         style={{ padding: '0 4cqi', fontSize: '5cqi' }}
       >
         {asset.title}
@@ -439,7 +442,7 @@ function WindowCard({ asset }: { asset: JoinedAsset }) {
       <div className="window-cutout" />
 
       <div className="absolute bottom-0 left-0 right-0 z-20 text-center" style={{ padding: '0 4cqi 4cqi' }}>
-        <p className="text-cyan-300/50 leading-snug line-clamp-2" style={{ fontSize: '3.75cqi' }}>
+        <p className={`text-cyan-300/50 leading-snug ${enlarged ? '' : 'line-clamp-2'}`} style={{ fontSize: '3.75cqi' }}>
           {asset.content_front}
         </p>
       </div>
@@ -452,7 +455,7 @@ function WindowCard({ asset }: { asset: JoinedAsset }) {
 // ─────────────────────────────────────────────────────────────────────
 // NOTCH / ACTION_NOTCH
 // ─────────────────────────────────────────────────────────────────────
-function NotchCard({ asset }: { asset: JoinedAsset }) {
+function NotchCard({ asset, enlarged = false }: { asset: JoinedAsset; enlarged?: boolean }) {
   return (
     <>
       <div className="absolute inset-0" style={{
@@ -478,7 +481,7 @@ function NotchCard({ asset }: { asset: JoinedAsset }) {
       </div>
 
       <div
-        className="relative z-20 font-bold text-lime-100 leading-tight line-clamp-2"
+        className={`relative z-20 font-bold text-lime-100 leading-tight ${enlarged ? '' : 'line-clamp-2'}`}
         style={{ padding: '0 4cqi', marginBottom: '2cqi', fontSize: '5cqi' }}
       >
         {asset.title}
@@ -489,9 +492,9 @@ function NotchCard({ asset }: { asset: JoinedAsset }) {
         style={{ margin: '0 4cqi 4cqi' }}
       />
 
-      <div className="relative z-20 flex-1" style={{ padding: '0 4cqi' }}>
+      <div className={`relative z-20 flex-1 ${enlarged ? 'overflow-y-auto min-h-0' : ''}`} style={{ padding: '0 4cqi' }}>
         <p
-          className="text-lime-200/65 leading-snug line-clamp-6"
+          className={`text-lime-200/65 leading-snug ${enlarged ? '' : 'line-clamp-6'}`}
           style={{ fontSize: '4cqi', fontFamily: 'var(--font-crimson)' }}
         >
           {asset.content_front}
@@ -512,7 +515,7 @@ function NotchCard({ asset }: { asset: JoinedAsset }) {
 // ─────────────────────────────────────────────────────────────────────
 // STATUS
 // ─────────────────────────────────────────────────────────────────────
-function StatusCard({ asset }: { asset: JoinedAsset }) {
+function StatusCard({ asset, enlarged = false }: { asset: JoinedAsset; enlarged?: boolean }) {
   const icon = statusIcon(asset.title ?? '')
   const p    = seedPattern(asset.card_number)
 
@@ -541,8 +544,8 @@ function StatusCard({ asset }: { asset: JoinedAsset }) {
       ))}
 
       <div
-        className="relative z-20 flex flex-col items-center justify-center h-full text-center"
-        style={{ padding: '0 6cqi', gap: '4cqi' }}
+        className={`relative z-20 flex flex-col items-center h-full text-center ${enlarged ? 'justify-start pt-[6cqi]' : 'justify-center'}`}
+        style={{ padding: `0 6cqi`, gap: '4cqi' }}
       >
         <div
           className="rounded-full flex items-center justify-center"
@@ -571,7 +574,7 @@ function StatusCard({ asset }: { asset: JoinedAsset }) {
         </div>
 
         <div className="parchment-area rounded w-full" style={{ padding: '2cqi 4cqi' }}>
-          <p className="parchment-text leading-snug line-clamp-3" style={{ fontSize: '3.75cqi' }}>
+          <p className={`parchment-text leading-snug ${enlarged ? '' : 'line-clamp-3'}`} style={{ fontSize: '3.75cqi' }}>
             {asset.content_front}
           </p>
         </div>
@@ -585,7 +588,7 @@ function StatusCard({ asset }: { asset: JoinedAsset }) {
 // ─────────────────────────────────────────────────────────────────────
 // ENDING
 // ─────────────────────────────────────────────────────────────────────
-function EndingCard({ asset }: { asset: JoinedAsset }) {
+function EndingCard({ asset, enlarged = false }: { asset: JoinedAsset; enlarged?: boolean }) {
   return (
     <>
       <div className="absolute inset-0" style={{ background: 'linear-gradient(160deg, #3d0505 0%, #1f0303 100%)' }}>
@@ -608,7 +611,7 @@ function EndingCard({ asset }: { asset: JoinedAsset }) {
       ))}
 
       <div
-        className="relative z-20 flex flex-col items-center justify-center h-full text-center"
+        className={`relative z-20 flex flex-col items-center h-full text-center ${enlarged ? 'justify-start pt-[6cqi]' : 'justify-center'}`}
         style={{ padding: '0 8cqi', gap: '4cqi' }}
       >
         <div className="card-type-badge bg-red-900/70 text-red-200 border border-red-700/30">Ending</div>
@@ -625,7 +628,7 @@ function EndingCard({ asset }: { asset: JoinedAsset }) {
         <div className="w-full h-px bg-gradient-to-r from-transparent via-[rgba(201,162,39,0.45)] to-transparent" />
 
         <p
-          className="text-red-200/70 leading-snug line-clamp-4 italic"
+          className={`text-red-200/70 leading-snug italic ${enlarged ? '' : 'line-clamp-4'}`}
           style={{ fontSize: '4cqi', fontFamily: 'var(--font-crimson)' }}
         >
           {asset.content_front}
@@ -656,7 +659,7 @@ function EndingPattern() {
 // ─────────────────────────────────────────────────────────────────────
 // DEFAULT fallback
 // ─────────────────────────────────────────────────────────────────────
-function DefaultCard({ asset }: { asset: JoinedAsset }) {
+function DefaultCard({ asset, enlarged = false }: { asset: JoinedAsset; enlarged?: boolean }) {
   const cardType = resolveCardType(asset)
   const label    = TYPE_LABEL[cardType] ?? cardType
   const badge    = BADGE_BG[cardType]   ?? 'bg-slate-700 text-white'
@@ -666,8 +669,8 @@ function DefaultCard({ asset }: { asset: JoinedAsset }) {
         <span className={`card-type-badge ${badge}`}>{label}</span>
         <span className="font-mono text-white/40" style={{ fontSize: '4.5cqi' }}>#{asset.card_number}</span>
       </div>
-      <div className="font-bold text-white leading-tight line-clamp-2" style={{ fontSize: '5.5cqi' }}>{asset.title}</div>
-      <p className="text-white/60 leading-snug line-clamp-5" style={{ fontSize: '4.5cqi' }}>{asset.content_front}</p>
+      <div className={`font-bold text-white leading-tight ${enlarged ? '' : 'line-clamp-2'}`} style={{ fontSize: '5.5cqi' }}>{asset.title}</div>
+      <p className={`text-white/60 leading-snug ${enlarged ? '' : 'line-clamp-5'}`} style={{ fontSize: '4.5cqi' }}>{asset.content_front}</p>
     </div>
   )
 }

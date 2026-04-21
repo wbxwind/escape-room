@@ -14,8 +14,11 @@
     clamp(64px, calc((100dvh - 190px) / 4.5), 175px)
   );
   --card-h:    calc(var(--card-w) * 1.5);
-  /* Enlarged (inspect modal) */
-  --card-w-lg: clamp(240px, 20vw, 320px);
+  /* Enlarged (inspect modal) — constrained by height so card always fits in viewport */
+  --card-w-lg: min(
+    clamp(240px, 20vw, 320px),
+    calc((100dvh - 140px) / 1.5)
+  );
   --card-h-lg: calc(var(--card-w-lg) * 1.5);
   /* Inter-card gap — scales with card size */
   --card-gap:  clamp(8px, 0.85vw, 18px);
@@ -495,8 +498,10 @@ body {
   backdrop-filter: blur(8px);
   z-index: 200;
   display: flex;
-  align-items: center;
+  align-items: flex-start;    /* don't center — let content flow from top for scroll */
   justify-content: center;
+  padding: clamp(20px, 4vh, 60px) 16px;
+  overflow-y: auto;           /* scroll on short viewports instead of clipping */
   animation: fade-in 0.15s ease-out;
 }
 
@@ -507,8 +512,9 @@ body {
 
 .inspect-card {
   animation: scale-in 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
-  max-width: 340px;
-  width: 100%;
+  width: var(--card-w-lg);    /* match card exactly — no squish, no overflow */
+  flex-shrink: 0;
+  margin: auto;               /* re-center within the padded backdrop */
 }
 
 @keyframes scale-in {
