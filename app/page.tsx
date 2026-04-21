@@ -277,9 +277,10 @@ function BoardView({ game }: { game: ReturnType<typeof useGameBoard> }) {
               <DropZone
                 id="zone-PLAYER_AREA"
                 className="!rounded-none !border-0 !bg-transparent"
-                style={{ height: 'calc(var(--card-h) * 0.85 + 24px)' }}
+                style={{ height: 'calc(var(--card-h) + 28px)' }}
               >
-                <div className="flex flex-row items-end overflow-x-auto gap-4 py-2 px-4 h-full">
+                {/* pt-3 / pb-1 gives clearance so rotated card corners don't clip at container edge */}
+                <div className="flex flex-row items-center overflow-x-auto gap-4 px-4 h-full" style={{ paddingTop: '10px', paddingBottom: '4px' }}>
                   {items.filter(i => i.current_zone === 'PLAYER_AREA').map(item => (
                     <div
                       key={item.state_id}
@@ -299,11 +300,11 @@ function BoardView({ game }: { game: ReturnType<typeof useGameBoard> }) {
             </div>
           </div>
 
-          {/* Right sidebar — Deck (top 1/4) + Discard (bottom 3/4) */}
+          {/* Right sidebar — width driven by card size so cards never squish */}
           <div
             id="zone-DISCARD-wrapper"
-            className="flex-none w-[72px] sm:w-[100px] md:w-[140px] border-l border-[rgba(255,255,255,0.05)] flex flex-col h-full overflow-hidden"
-            style={{ background: 'rgba(7,13,20,0.6)', paddingRight: 'var(--safe-right)' }}
+            className="flex-none border-l border-[rgba(255,255,255,0.05)] flex flex-col h-full overflow-hidden"
+            style={{ width: 'calc(var(--card-w) + 32px)', background: 'rgba(7,13,20,0.6)', paddingRight: 'var(--safe-right)' }}
           >
             {/* Deck section — flex-1 (top 1/4) */}
             <div className="flex-1 flex flex-col items-center justify-center p-2 border-b border-[rgba(255,255,255,0.05)]">
@@ -311,29 +312,16 @@ function BoardView({ game }: { game: ReturnType<typeof useGameBoard> }) {
               <Deck deckCount={deckCount} onDraw={drawCard} onDrawByNumber={drawCardByNumber} />
             </div>
 
-            {/* Discard section — flex-[3] (bottom 3/4), fully visible scrollable list */}
+            {/* Discard section — stacked physical pile, scrollable */}
             <DropZone
               id="zone-DISCARD"
-              className="flex-[3] p-2 flex flex-col overflow-hidden !rounded-none !border-0 !bg-transparent"
+              className="flex-[3] flex flex-col overflow-hidden !rounded-none !border-0 !bg-transparent"
             >
-              <h2 className="zone-label text-[9px] text-rose-900/70 mb-1 text-center flex-none">Discard</h2>
+              <h2 className="zone-label text-[9px] text-rose-900/70 mb-1 text-center flex-none pt-2">Discard</h2>
               <div className="text-[8px] font-mono text-zinc-700 mb-2 text-center leading-tight flex-none">
                 Story cards after<br />reading aloud
               </div>
-              <div className="flex flex-col gap-3 overflow-y-auto px-1 pb-6 flex-1">
-                {items.filter(i => i.current_zone === 'DISCARD').map(item => (
-                  <div
-                    key={item.state_id}
-                    className="flex-shrink-0"
-                    onDoubleClick={() => setInspectAsset(item)}
-                  >
-                    <DraggableCard asset={item} />
-                  </div>
-                ))}
-                {items.filter(i => i.current_zone === 'DISCARD').length === 0 && (
-                  <div className="text-[8px] font-mono text-zinc-800 text-center mt-4 leading-snug">Empty</div>
-                )}
-              </div>
+              <DiscardStack items={items} onInspect={setInspectAsset} />
             </DropZone>
           </div>
         </div>
@@ -393,6 +381,54 @@ function BoardView({ game }: { game: ReturnType<typeof useGameBoard> }) {
 // ─────────────────────────────────────────────────────────────────────
 // Helpers
 // ─────────────────────────────────────────────────────────────────────
+
+/** Peek offset matches the PanoramaSlot stacking (absolute top-[28px] per layer). */
+const DISCARD_PEEK = 28
+
+function DiscardStack({
+  items,
+  onInspect,
+}: {
+  items: ReturnType<typeof useGameBoard>['items']
+  onInspect: (a: ReturnType<typeof useGameBoard>['items'][0]) => void
+}) {
+  const discardItems = items.filter(i => i.current_zone === 'DISCARD')
+
+  if (discardItems.length === 0) {
+    return (
+      <div className="flex-1 flex items-start justify-center pt-4">
+        <span className="text-[8px] font-mono text-zinc-800">Empty</span>
+      </div>
+    )
+  }
+
+  return (
+    <div className="flex-1 overflow-y-auto overflow-x-hidden pt-1 pb-6 flex justify-center">
+      {/* Explicit card-width container — cards never squish regardless of panel width */}
+      <div
+        className="relative flex-shrink-0"
+        style={{
+          width: 'var(--card-w)',
+          height: `calc(var(--card-h) + ${(discardItems.length - 1) * DISCARD_PEEK}px)`,
+        }}
+      >
+        {discardItems.map((item, idx) => (
+          <div
+            key={item.state_id}
+            className="absolute inset-x-0 flex-shrink-0 shadow-2xl discard-stack-card"
+            style={{
+              top: `${idx * DISCARD_PEEK}px`,
+              zIndex: idx + 1,
+            }}
+            onDoubleClick={() => onInspect(item)}
+          >
+            <DraggableCard asset={item} />
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
 
 function SlotColumn({ label, children }: { label: string; children: React.ReactNode }) {
   return (

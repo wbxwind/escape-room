@@ -5,9 +5,14 @@
    Premium tabletop aesthetic: felt board, physical cards, warm amber HUD
    ═══════════════════════════════════════════════════════════════ */
 :root {
-  /* ── Fluid card dimensions — scale with viewport ── */
-  /* clamp(min, preferred, max) — stays 100px on phones, grows on desktop */
-  --card-w:    clamp(100px, 9vw, 210px);
+  /* ── Fluid card dimensions — constrained by both vw and dvh so
+     5 card columns (panorama 4 + objective 1) fit horizontally AND
+     2 board rows + 1 hand row fit vertically with zero scrollbars.
+     Formula derivation: 3 × card-h + 190px ≤ 100dvh  →  card-w = card-h/1.5 = (100dvh−190)/4.5 */
+  --card-w: min(
+    clamp(64px, calc((100vw - 420px) / 5.5), 175px),
+    clamp(64px, calc((100dvh - 190px) / 4.5), 175px)
+  );
   --card-h:    calc(var(--card-w) * 1.5);
   /* Enlarged (inspect modal) */
   --card-w-lg: clamp(240px, 20vw, 320px);
@@ -90,11 +95,6 @@ body {
    BOARD GRID — Panorama area texture + drag pulse
    ═══════════════════════════════════════════════════════════════ */
 .board-grid {
-  /* Override --card-w so 5 columns + gaps always fit without scrollbars */
-  --card-w: min(
-    clamp(72px, calc((100vw - 420px) / 6), 175px),
-    clamp(72px, calc((100dvh - 220px) / 3.5), 175px)
-  );
   position: relative;
   background-image:
     linear-gradient(rgba(32, 180, 160, 0.05) 1px, transparent 1px),
@@ -368,12 +368,14 @@ body {
    DISCARD PILE — physical stacked cards
    ═══════════════════════════════════════════════════════════════ */
 .discard-stack-card {
-  transition: transform 0.2s ease, margin-top 0.2s ease;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5), 0 2px 4px rgba(0, 0, 0, 0.4);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.55), 0 2px 6px rgba(0, 0, 0, 0.45);
+  margin-bottom: 4px;
 }
 
 .discard-stack-card:hover {
-  transform: translateY(-12px) !important;
+  transform: translateY(-10px) rotate(0deg) !important;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.7) !important;
   z-index: 20 !important;
 }
 
