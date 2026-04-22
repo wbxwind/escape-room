@@ -11,7 +11,8 @@
       "Bash(npx next *)",
       "WebSearch",
       "WebFetch(domain:raw.githubusercontent.com)",
-      "Bash(dir *)"
+      "Bash(dir *)",
+      "mcp__supabase__get_project_url"
     ]
   },
   "enableAllProjectMcpServers": true,
