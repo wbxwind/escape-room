@@ -1,6 +1,24 @@
 interface IconProps {
   className?: string
+  style?: React.CSSProperties
 }
+
+/** Speaker + one wave — idle state, invites clicking to play. */
+export const SpeakerPlayIcon = ({ className, style }: IconProps) => (
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} style={style}>
+    <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+    <path d="M15.54 8.46a5 5 0 0 1 0 7.07"/>
+    <path d="M19.07 4.93a10 10 0 0 1 0 14.14"/>
+  </svg>
+)
+
+/** Filled square stop icon — shown while audio is playing. */
+export const SpeakerStopIcon = ({ className, style }: IconProps) => (
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} style={style}>
+    <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
+    <rect x="15" y="9" width="7" height="6" rx="1" fill="currentColor" stroke="none"/>
+  </svg>
+)
 
 export const MicIcon = ({ className }: IconProps) => (
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>

@@ -9,7 +9,8 @@ import { useGameBoard } from '@/hooks/useGameBoard'
 import { CardBody } from '@/components/CardBody'
 import { DraggableCard, DropZone } from '@/components/board'
 import { VoiceHUD } from '@/components/VoiceHUD'
-import { MicOffIcon, AudioOffIcon } from '@/components/icons'
+import { MicOffIcon, AudioOffIcon, SpeakerPlayIcon } from '@/components/icons'
+import { useTTS, TTS_PRESETS, type TTSPreset } from '@/hooks/useTTS'
 import { resolveCardType, OBJECTIVE_TYPES } from '@/types'
 import { Deck } from '@/components/Deck'
 
@@ -84,6 +85,7 @@ function BoardView({ game }: { game: ReturnType<typeof useGameBoard> }) {
 
   const [resetOpen, setResetOpen]   = useState(false)
   const [inspectAsset, setInspectAsset] = useState<typeof items[0] | null>(null)
+  const tts = useTTS()
 
   const deckCount   = items.filter(i => i.current_zone === 'DECK').length
   const activeAsset = items.find(i => i.state_id === activeId)
@@ -121,8 +123,39 @@ function BoardView({ game }: { game: ReturnType<typeof useGameBoard> }) {
             </select>
           </div>
 
-          {/* Right: reset + draw by number */}
+          {/* Right: TTS toggle + reset */}
           <div className="flex items-center gap-2">
+
+            {/* TTS controls: toggle + voice preset */}
+            <div className="flex items-center gap-1">
+              <button
+                onClick={tts.toggleEnabled}
+                className={`btn-game flex items-center gap-1.5 px-3 py-1.5 border rounded-l-lg text-xs font-mono transition-all ${
+                  tts.enabled
+                    ? 'bg-amber-900/20 border-amber-700/30 text-amber-400 hover:border-amber-600/40'
+                    : 'bg-black/30 border-[rgba(255,255,255,0.08)] text-zinc-600 hover:text-zinc-400'
+                }`}
+                title={tts.enabled ? 'Disable text-to-speech' : 'Enable text-to-speech'}
+              >
+                <SpeakerPlayIcon className="w-3.5 h-3.5" />
+                <span className="hidden md:inline">{tts.enabled ? 'TTS' : 'TTS'}</span>
+              </button>
+              <select
+                disabled={!tts.enabled}
+                value={tts.preset}
+                onChange={e => tts.setPreset(e.target.value as TTSPreset)}
+                className={`py-1.5 pr-2 pl-1.5 border border-l-0 rounded-r-lg text-xs font-mono transition-all outline-none cursor-pointer ${
+                  tts.enabled
+                    ? 'bg-amber-900/20 border-amber-700/30 text-amber-400 hover:border-amber-600/40'
+                    : 'bg-black/30 border-[rgba(255,255,255,0.08)] text-zinc-600 opacity-50 cursor-not-allowed'
+                }`}
+                title="Voice preset"
+              >
+                {(Object.entries(TTS_PRESETS) as [TTSPreset, typeof TTS_PRESETS[TTSPreset]][]).map(([key, p]) => (
+                  <option key={key} value={key}>{p.label}</option>
+                ))}
+              </select>
+            </div>
 
             {/* Reset Game */}
             <div className="relative">

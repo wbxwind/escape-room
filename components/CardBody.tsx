@@ -1,6 +1,7 @@
 'use client'
 
 import { JoinedAsset, resolveCardType, PANORAMA_TYPES, ACTION_TYPES } from '@/types'
+import { TTSButton } from '@/components/TTSButton'
 
 // ─────────────────────────────────────────────────────────────────────
 // Utilities
@@ -107,6 +108,7 @@ export function CardBody({ asset, enlarged = false }: CardBodyProps) {
   const isNotch   = cardType === 'NOTCH'  || cardType === 'ACTION_NOTCH'
 
   const widthClass = enlarged ? 'w-[var(--card-w-lg)]' : 'w-[var(--card-w)]'
+  const ttsText    = [asset.title, asset.content_front].filter(Boolean).join('. ')
 
   return (
     <div
@@ -115,6 +117,7 @@ export function CardBody({ asset, enlarged = false }: CardBodyProps) {
     >
       {isNotch && <div className="notch-cutout" />}
       <CardTypeRenderer asset={asset} cardType={cardType} enlarged={enlarged} />
+      <TTSButton cardId={asset.state_id} text={ttsText} enlarged={enlarged} />
     </div>
   )
 }

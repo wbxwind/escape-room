@@ -7,6 +7,16 @@
     "vercel": {
       "type": "http",
       "url": "https://mcp.vercel.com"
+    },
+    "groq": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "groq-compound-mcp-server"
+      ],
+      "env": {
+        "GROQ_API_KEY": ""
+      }
     }
   }
 }

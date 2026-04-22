@@ -1,36 +1,25 @@
-# Agent Directive: Game UI Responsiveness & Interaction Overhaul
+# Text-to-Speech (TTS) Implementation for Card Texts
 
-## 1. Zero Vertical Scrolling (Board & Hand)
-- The main game board area (middle panel) must **NEVER** have a vertical scrollbar.
-- All components within the board must scale to fit the available vertical space perfectly.
+**Goal:** Implement a Text-to-Speech (TTS) feature that allows users to hear the text written on the cards in the game.
 
-## 2. Dynamic Card & Slot Scaling
-- **Aspect Ratio Integrity**: Cards must resize based on container height. They must **NEVER** be squished or compressed horizontally (no "sliver" cards).
-- **Unified Sizing**: Cards in the Board/Panorama, Player Hand, and Discard Pile must share the same calculated size for consistency.
-- **Troubleshooting**: Use `flex-shrink: 0` and ensure parent containers respect the card's aspect-ratio-derived width. Scale by **height** first.
+## Context & Requirements:
+1. **Audio Toggle on Cards:** 
+   - Add a small, unobtrusive "Play Audio" icon/button to the card UI (e.g., in the header or footer of the card). 
+   - Ensure the icon changes state (Play / Stop) when audio is actively playing.
+2. **Audio Engine / API & Voice Selection:** 
+   - **Native Web Speech API:** If using `window.speechSynthesis`, implement a function to fetch available voices (`speechSynthesis.getVoices()`). Select a specific voice that fits the game's theme (e.g., filtering for a specific locale like `en-GB` and a known, high-quality local voice). Use the `pitch` and `rate` properties to simulate a specific tone (e.g., slightly lower pitch for a dramatic, serious tone).
+   - **Third-Party API (e.g., ElevenLabs, OpenAI):** If using a premium API, expose configuration variables for the `voice_id` or `model` to allow easy swapping of the voice actor/tone. Let the API handle the tonal nuances.
+3. **State Management:**
+   - Ensure only one audio snippet plays at a time. If a user clicks play on a new card, cancel the ongoing speech from the previous card.
+   - Handle edge cases: automatically stop playback if the card is closed, unmounted, or if the user navigates away.
+4. **Accessibility & Global Settings:**
+   - Provide a global toggle in the UI (e.g., in a settings menu or navigation bar) to enable/disable the TTS feature globally.
+   - Include a basic dropdown or selection menu in the settings allowing users to pick between a few voice options (e.g., "Narrator", "Computer", "Character") if supported by the chosen API.
+5. **Responsive Design:**
+   - Ensure the addition of the audio button does not disrupt the existing responsive card layout. It should scale smoothly alongside other card elements.
 
-## 3. Player Hand Improvements
-- **Horizontal Scroll Only**: Horizontal scrolling is allowed in the hand area **ONLY** when the card count exceeds the available width.
-- **Rotation Padding**: Ensure enough internal padding/margin in the hand container so card corners are not cropped when rotated.
-- **Full Visibility**: Cards in the hand must be 100% visible from top to bottom.
-
-## 4. Side Panels & Discard Pile
-- **Right Panel Width**: The right panel width should be derived from the **unified card width** plus padding. It must not force cards to squish.
-- **Discard Stacking Effect**: 
-    - Replace the vertical list with a **stacking system**.
-    - Apply a slight "slide" offset to stacked cards so the **Number** and **Type** remain visible.
-    - Reference the existing "Situation + Action" stacking effect as a template.
-- **Padding**: Add internal padding to the Discard container so cards don't touch the edges.
-
-## 5. Card Detailed View (Inspection)
-- **Full Text Display**: Ensure the entire narrative text string is displayed. 
-- **Remove Truncation**: Remove all `line-clamp`, `text-overflow: ellipsis`, and fixed-height constraints on text containers in the detailed view (check `CardBody.tsx` and similar).
-- **Internal Scroll**: Implement a vertical scrollbar within the beige/content area of the card to allow reading long texts in full.
-
-## 6. Implementation Checklist
-- [ ] No vertical scrollbar on the main board.
-- [ ] Unified card sizes across all areas.
-- [ ] Cards maintain aspect ratio (no squishing).
-- [ ] Hand rotation does not clip corners.
-- [ ] Discard pile uses the slide-stacking effect.
-- [ ] Inspection view shows full text with internal scrolling.
+## Acceptance Criteria:
+- Clicking the audio button reads the card's narrative text aloud.
+- Visual feedback is clearly displayed during playback.
+- Audio halts gracefully upon stopping or component unmounting.
+- The implementation strictly adheres to the established visual design system without cluttering the card interface.
