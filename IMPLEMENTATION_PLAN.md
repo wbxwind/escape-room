@@ -708,6 +708,6 @@ types/
 - [ ] Toast stack (max 3) with appropriate severity colours
 
 ### Non-regression
-- [ ] DnD, voice HUD, TTS, Supabase realtime all still work
+- [ ] DnD, voice HUD, Supabase realtime all still work
 - [ ] Supabase security advisors remain clear
 - [ ] No TypeScript errors, no hydration warnings
