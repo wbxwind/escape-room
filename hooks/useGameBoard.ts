@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useSensors, useSensor, PointerSensor, TouchSensor, type DragEndEvent, type DragStartEvent } from '@dnd-kit/core'
 import { supabase } from '@/lib/supabase'
-import { JoinedAsset, CardPosition, RoomParticipant, PANORAMA_TYPES, ACTION_TYPES, OBJECTIVE_TYPES, resolveCardType } from '@/types'
+import { JoinedAsset, CardPosition, RoomParticipant, ConsequenceEvent, PANORAMA_TYPES, ACTION_TYPES, OBJECTIVE_TYPES, resolveCardType } from '@/types'
 
 export interface GameBoardState {
   items: JoinedAsset[]
@@ -28,6 +28,7 @@ export interface GameBoardState {
   drawCard: () => Promise<void>
   drawCardByNumber: (cardNumber: string) => Promise<void>
   resetGame: () => Promise<void>
+  consequenceLog: ConsequenceEvent[]
 }
 
 /** UUID v4 fallback for non-secure contexts (HTTP on local network). */
@@ -65,6 +66,7 @@ export function useGameBoard(): GameBoardState {
   const [cachedId, setCachedId]                 = useState<string | null>(null)
   const [liveKitToken, setLiveKitToken]         = useState<string | null>(null)
   const [liveKitUrl, setLiveKitUrl]             = useState<string | null>(null)
+  const [consequenceLog, setConsequenceLog]     = useState<ConsequenceEvent[]>([])
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -217,6 +219,7 @@ export function useGameBoard(): GameBoardState {
               current_zone:  zone,
               panorama_slot: slot,
               attached_to:   pos?.attached_to ?? null,
+              flip_state:    (pos?.flip_state ?? 'front') as 'front' | 'back',
             }
           })
           setItems(joined)
@@ -249,6 +252,7 @@ export function useGameBoard(): GameBoardState {
                   current_zone:  normaliseZone(pos.current_zone),
                   panorama_slot: pos.panorama_slot,
                   attached_to:   pos.attached_to,
+                  flip_state:    (pos.flip_state ?? 'front') as 'front' | 'back',
                 }
               : i
           ))
@@ -291,7 +295,7 @@ export function useGameBoard(): GameBoardState {
 
   const triggerInteract = useCallback(async (actionId: string, panoramaId: string) => {
     setToastSticky(false)
-    setToast('Resolving interaction...')
+    setToast('Resolving...')
     const res  = await fetch('/api/interact', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -302,15 +306,26 @@ export function useGameBoard(): GameBoardState {
       setToastSticky(true)
       setToast(data.message)
     }
-    // If a card was drawn server-side, sync local state immediately
-    if (data.drawnCard) {
-      setItems(prev => prev.map(i =>
-        i.id === data.drawnCard.id
-          ? { ...i, current_zone: data.drawnCard.zone as JoinedAsset['current_zone'], panorama_slot: null }
-          : i
-      ))
+
+    // Append consequence events to log (keep last 50)
+    if (data.consequences?.length) {
+      const newEvents: ConsequenceEvent[] = data.consequences.map((c: { description: string; severity: ConsequenceEvent['severity'] }) => ({
+        id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+        timestamp: Date.now(),
+        description: c.description,
+        severity: c.severity ?? 'info',
+      }))
+      setConsequenceLog(prev => [...prev, ...newEvents].slice(-50))
     }
+
+    // Realtime subscription handles state sync — no manual local update needed
   }, [roomCode])
+
+  /** If a STORY card is about to enter STORY_ZONE, discard any existing STORY_ZONE card. */
+  const clearStoryZone = useCallback(async () => {
+    const existing = items.filter(i => i.current_zone === 'STORY_ZONE')
+    for (const old of existing) await moveAsset(old.state_id, 'DISCARD', null)
+  }, [items, moveAsset])
 
   /** Draw the next card from the top of the sorted deck (lowest card_number). */
   const drawCard = useCallback(async () => {
@@ -318,13 +333,13 @@ export function useGameBoard(): GameBoardState {
     if (deck.length === 0) return setToast('The deck is empty!')
     const card    = deck[0]
     const type    = resolveCardType(card)
-    // Determine where the card goes when drawn
     const destZone = OBJECTIVE_TYPES.has(type) ? 'OBJECTIVE'
                    : type === 'STORY'           ? 'STORY_ZONE'
                    : 'PLAYER_AREA'
+    if (destZone === 'STORY_ZONE') await clearStoryZone()
     await moveAsset(card.state_id, destZone, null)
     setToast(`Drawn: ${card.title || `Card #${card.card_number}`}`)
-  }, [items, moveAsset])
+  }, [items, moveAsset, clearStoryZone])
 
   /**
    * Draw a specific card by its card_number (only valid if has_magnifying_glass is true).
@@ -338,15 +353,19 @@ export function useGameBoard(): GameBoardState {
       parseInt(i.card_number ?? '0', 10) === inputNum &&
       i.current_zone === 'DECK'
     )
-    if (!card) return setToast(`Card #${inputNum} is not in the deck.`)
+    if (!card) {
+      // Card already drawn — silently skip (common when story text draws same card twice)
+      return
+    }
 
     const type     = resolveCardType(card)
     const destZone = OBJECTIVE_TYPES.has(type) ? 'OBJECTIVE'
                    : type === 'STORY'           ? 'STORY_ZONE'
                    : 'PLAYER_AREA'
+    if (destZone === 'STORY_ZONE') await clearStoryZone()
     await moveAsset(card.state_id, destZone, null)
     setToast(`Drew: ${card.title || `Card #${card.card_number}`}`)
-  }, [items, moveAsset])
+  }, [items, moveAsset, clearStoryZone])
 
   const resetGame = useCallback(async () => {
     if (!roomCode) return
@@ -499,5 +518,6 @@ export function useGameBoard(): GameBoardState {
     cachedId, liveKitToken, liveKitUrl,
     sensors, handleDragStart, handleDragEnd,
     drawCard, drawCardByNumber, resetGame,
+    consequenceLog,
   }
 }

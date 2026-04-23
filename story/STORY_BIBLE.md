@@ -94,6 +94,8 @@ Director Marcus Webb — head of Meridian's Cognitive Research division — has 
 - **type**: SITUATION
 - **title**: Server Room Corridor
 - **default_zone**: PANORAMA
+- **panorama_row**: 1
+- **panorama_col**: 1
 - **content_front**: "A long corridor flanked by server racks. Red accent lighting traces the grated floor panels. The hum is constant. One rack has been physically opened — a panel hangs loose, wiring exposed."
 - **content_back**: null
 - **has_magnifying_glass**: false
@@ -111,6 +113,8 @@ Director Marcus Webb — head of Meridian's Cognitive Research division — has 
 - **type**: SITUATION
 - **title**: Security Terminal Bay
 - **default_zone**: PANORAMA
+- **panorama_row**: 1
+- **panorama_col**: 2
 - **content_front**: "A horseshoe of monitors — some dark, some cycling through camera feeds showing empty corridors. The central terminal is logged in. Someone left in a hurry. A coffee cup, still warm."
 - **content_back**: null
 - **has_magnifying_glass**: false
@@ -185,6 +189,8 @@ Director Marcus Webb — head of Meridian's Cognitive Research division — has 
 - **type**: SITUATION
 - **title**: Cooling System Vent Access
 - **default_zone**: PANORAMA
+- **panorama_row**: 1
+- **panorama_col**: 3
 - **content_front**: "A recessed alcove behind the server corridor. Massive industrial fans behind a grated panel. The panel has been removed — recently, judging by the scratches on the bolts. Someone went through here."
 - **content_back**: null
 - **has_magnifying_glass**: false
@@ -250,6 +256,8 @@ Director Marcus Webb — head of Meridian's Cognitive Research division — has 
 - **type**: SITUATION
 - **title**: Maintenance Hatch B3
 - **default_zone**: DECK
+- **panorama_row**: 1
+- **panorama_col**: 4
 - **content_front**: "A heavy hatch at the end of the maintenance corridor. The locking wheel has been barricaded from this side with a pipe wrench jammed through the spokes. Someone was keeping something out — or keeping themselves in."
 - **content_back**: null
 - **has_magnifying_glass**: false
@@ -499,6 +507,8 @@ Director Marcus Webb — head of Meridian's Cognitive Research division — has 
 - **type**: SITUATION
 - **title**: Lab 7 — Cognitive Research Wing
 - **default_zone**: DECK
+- **panorama_row**: 1
+- **panorama_col**: 5
 - **content_front**: "A long, narrow laboratory. Benches lined with pharmaceutical equipment — synthesizers, centrifuges, rows of amber vials. The far wall is a whiteboard covered in behavioral performance graphs. A cot is set up in the corner. Someone has been living here."
 - **content_back**: null
 - **has_magnifying_glass**: false
@@ -575,6 +585,8 @@ Director Marcus Webb — head of Meridian's Cognitive Research division — has 
 - **type**: SITUATION
 - **title**: Director's Office
 - **default_zone**: DECK
+- **panorama_row**: 2
+- **panorama_col**: 1
 - **content_front**: "A corner office that looks designed to impress. Two walls of glass, now opaque — emergency privacy screens down. A desk the size of a door. On the desk: a keyboard, a coffee thermos, and a framed photo of Webb shaking hands with someone whose face has been cut out with scissors."
 - **content_back**: null
 - **has_magnifying_glass**: false
@@ -823,6 +835,8 @@ Director Marcus Webb — head of Meridian's Cognitive Research division — has 
 - **type**: SITUATION
 - **title**: The Atrium — Central Hub
 - **default_zone**: DECK
+- **panorama_row**: 2
+- **panorama_col**: 2
 - **content_front**: "The facility's central atrium: a circular space where all four sector corridors meet. The ceiling is six meters high. In the center, a large cylindrical column houses the main PA and emergency broadcast antenna. The column has been partially disassembled. Tools abandoned mid-task."
 - **content_back**: null
 - **has_magnifying_glass**: false
@@ -1136,6 +1150,8 @@ Director Marcus Webb — head of Meridian's Cognitive Research division — has 
 - **type**: SITUATION
 - **title**: AEON Core Chamber
 - **default_zone**: DECK
+- **panorama_row**: 2
+- **panorama_col**: 3
 - **content_front**: "A circular chamber at the facility's lowest level. Floor-to-ceiling server architecture in a ring. In the center: a single freestanding terminal — the only human interface to AEON's core reasoning layer. The terminal is on. The cursor blinks. On the screen: 'I AM STILL HERE.'"
 - **content_back**: null
 - **has_magnifying_glass**: false
@@ -1203,6 +1219,8 @@ Director Marcus Webb — head of Meridian's Cognitive Research division — has 
 - **type**: SITUATION
 - **title**: Medical Bay
 - **default_zone**: DECK
+- **panorama_row**: 2
+- **panorama_col**: 4
 - **content_front**: "A clinical space — six examination beds, all empty and precisely made. One exception: the last bed has a pillow dented where someone slept. The supply cabinet is locked but the lock shows scratches, as if someone tried to pick it. On the counter: a centrifuge, pharmaceutical scales, and a single printed formula taped to the wall above them."
 - **content_back**: null
 - **has_magnifying_glass**: false
@@ -1342,6 +1360,8 @@ Director Marcus Webb — head of Meridian's Cognitive Research division — has 
 - **type**: SITUATION
 - **title**: Emergency Exit Corridor
 - **default_zone**: DECK
+- **panorama_row**: 2
+- **panorama_col**: 5
 - **content_front**: "A hundred-meter straight corridor ending in sealed blast doors. The walls carry the facility's emergency broadcast antenna junction — a bank of transmission equipment mounted high, with a manual uplink port at chest height. The indicator: OFFLINE. Someone disconnected the antenna feed cable. The cable is on the floor."
 - **content_back**: null
 - **has_magnifying_glass**: false

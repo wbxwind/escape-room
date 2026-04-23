@@ -1,6 +1,6 @@
 # Implementation Plan — Physical Card Mechanics Revamp
 
-> **Status:** DRAFT — reviewed, dev comments resolved
+> **Status:** IN PROGRESS — Phases 1–5, 7–8 complete; Phase 6 pending; data seeding pending
 > **Branch:** main → new branch recommended before starting
 > **Reference files:** `CARD_CATALOG.md`, `WINDOW_NOTCH_CARD_SPECS.md`
 
@@ -680,34 +680,46 @@ types/
 ## Definition of done
 
 ### Core mechanics
-- [ ] Drop reveal-type ACTION card on Situation card → correct band text in modal, consequences auto-execute
-- [ ] Drop draw-type ACTION card on Situation card → correct card drawn automatically
-- [ ] Band assignment never shown to player — only `window_action` text visible on card face
-- [ ] Consumable ACTION card auto-discards after use
-- [ ] `DISCARD_PANORAMA` clears all Panorama slots in one consequence
-- [ ] `DRAW_RANGE` draws all cards in range simultaneously
-- [ ] Story card with `content_back` shows Continue → button and reveals back text on click
+- [x] Drop reveal-type ACTION card on Situation card → correct band text in modal, consequences auto-execute *(code done; requires DB seeding of `back_a/b/c` and `interactions.consequences`)*
+- [x] Drop draw-type ACTION card on Situation card → correct card drawn automatically *(code done; requires DB seeding of `notch_draw_a/b/c`)*
+- [x] Band assignment never shown to player — only `window_action` text visible on card face
+- [x] Consumable ACTION card auto-discards after use *(auto-appends `DISCARD_SELF` when `consumable = true`)*
+- [x] `DISCARD_PANORAMA` clears all Panorama slots in one consequence
+- [x] `DRAW_RANGE` draws all cards in range simultaneously
+- [x] Story card with `content_back` shows Continue → button and reveals back text on click
 
 ### Status system
-- [ ] Gaining a STATUS already held → auto-escalates (`flip_state` front → back)
-- [ ] Gaining escalated STATUS → `DAMAGE_CHARACTER` triggered
-- [ ] STATUS badges visible in OBJECTIVE zone beneath character card
-- [ ] STATUS cleared by `REMOVE_STATUS` → returns to DECK
+- [x] Gaining a STATUS already held → auto-escalates (`flip_state` front → back)
+- [x] Gaining escalated STATUS → `DAMAGE_CHARACTER` triggered
+- [x] STATUS badges visible in OBJECTIVE zone beneath character card *(ObjectivePanel — icon, name, red border when escalated)*
+- [x] STATUS cleared by `REMOVE_STATUS` → returns to DECK
 
 ### Living board
-- [ ] Situation card with `replaces_card_number` set → auto-discards old card from Panorama on placement
-- [ ] OBJECTIVE card flips to show new sub-objective text when `FLIP_OBJECTIVE` fires
-- [ ] CHARACTER card shows health state and updates when `DAMAGE_CHARACTER` fires
-- [ ] `NEW_CHAPTER` consequence transitions objective card correctly
+- [x] Situation card with `replaces_card_number` set → auto-discards old card from Panorama on placement *(PLACE_TO_PANORAMA consequence)*
+- [x] OBJECTIVE card flips to show new sub-objective text when `FLIP_OBJECTIVE` fires *(ObjectivePanel reads flip_state)*
+- [x] CHARACTER card shows health state and updates when `DAMAGE_CHARACTER` fires *(green/amber/red health indicator)*
+- [x] `NEW_CHAPTER` consequence transitions objective card correctly
 
 ### Progress HUD
-- [ ] Current objective text always visible in OBJECTIVE zone
-- [ ] Character health state colour-coded (healthy / weak / critical)
-- [ ] Active statuses visible as badges
-- [ ] Consequence log shows last 10 events; collapsible
-- [ ] Toast stack (max 3) with appropriate severity colours
+- [x] Current objective text always visible in OBJECTIVE zone *(ObjectivePanel — chapter name + goal text)*
+- [x] Character health state colour-coded (healthy / weak / critical)
+- [x] Active statuses visible as badges
+- [x] Consequence log shows last 10 events; collapsible *(ConsequenceLog — stores up to 50, collapsible LOG button in HUD)*
+- [ ] Toast stack (max 3) with appropriate severity colours *(interact route returns severity; UI still single-string toast — not upgraded yet)*
 
 ### Non-regression
-- [ ] DnD, voice HUD, Supabase realtime all still work
-- [ ] Supabase security advisors remain clear
-- [ ] No TypeScript errors, no hydration warnings
+- [x] No TypeScript errors, no hydration warnings *(`npx tsc --noEmit` — clean)*
+- [ ] DnD, voice HUD, Supabase realtime all still work *(code unchanged; not browser-tested since last changes)*
+- [ ] Supabase security advisors remain clear *(additive migration only — likely clear, not verified)*
+
+---
+
+## Remaining work
+
+| Item | Blocked on |
+|------|-----------|
+| DB seed — card data from story bible | Manual seeding task (story/STORY_BIBLE.md exists, SQL not written) |
+| Toast stack UI upgrade (max 3, severity colours) | Nothing — straightforward UI change in `app/page.tsx` |
+| Phase 6 — Art prompts (`LEONARDO_PROMPTS.md`) | Nothing — can run anytime |
+| Browser regression test | Nothing — run `npm run dev` and test DnD + realtime |
+| Supabase security advisor check | Re-auth then `mcp__supabase__get_advisors` |

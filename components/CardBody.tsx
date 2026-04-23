@@ -219,6 +219,9 @@ const SITUATION_BG_SIZES = ['14cqi 12cqi', '5cqi 5cqi', '10cqi 10cqi', '8cqi 8cq
 
 function SituationCard({ asset, enlarged = false }: { asset: JoinedAsset; enlarged?: boolean }) {
   const p = seedPattern(asset.card_number)
+  // caption takes priority over content_front for the atmospheric face text
+  const faceText = asset.caption ?? asset.content_front
+
   return (
     <>
       {asset.image_url ? (
@@ -230,12 +233,22 @@ function SituationCard({ asset, enlarged = false }: { asset: JoinedAsset; enlarg
         <SituationPlaceholder title={asset.title} pattern={p} />
       )}
       <div className="absolute bottom-0 left-0 right-0 h-[44%] bg-gradient-to-t from-[#1e1308] to-transparent z-0 pointer-events-none" />
+
+      {/* Card number badge */}
       <div className="absolute top-0 left-0 z-20">
         <div className="card-number-badge bg-[#c9a227] text-[#1a0f00] font-bold">{asset.card_number}</div>
       </div>
+
+      {/* Board position minimap — player hint only, never enforced by code */}
+      {(asset.panorama_row != null && asset.panorama_col != null) && (
+        <SituationMinimap row={asset.panorama_row} col={asset.panorama_col} />
+      )}
+
       <div className="absolute top-0 right-0 z-20" style={{ padding: '1.5cqi 3cqi 0' }}>
         <div className="card-type-badge bg-yellow-900/70 text-yellow-200">Situation</div>
       </div>
+
+      {/* Caption strip */}
       <div
         className="absolute bottom-0 left-0 right-0 z-20"
         style={{ padding: '2cqi', background: 'linear-gradient(to top, rgba(10,6,2,0.92) 60%, transparent)' }}
@@ -244,7 +257,7 @@ function SituationCard({ asset, enlarged = false }: { asset: JoinedAsset; enlarg
           className={`font-semibold text-amber-50 leading-snug text-center ${enlarged ? '' : 'line-clamp-3'}`}
           style={{ fontSize: '4.5cqi', textShadow: '0 1px 4px rgba(0,0,0,0.9)' }}
         >
-          {asset.content_front}
+          {faceText}
         </div>
         {asset.title && (
           <div
@@ -256,6 +269,38 @@ function SituationCard({ asset, enlarged = false }: { asset: JoinedAsset; enlarg
         )}
       </div>
     </>
+  )
+}
+
+// Board position minimap — 5×2 grid, highlighted cell = this card's canonical slot
+function SituationMinimap({ row, col }: { row: number; col: number }) {
+  const COLS = 5
+  const ROWS = 2
+  return (
+    <div
+      className="absolute z-20"
+      style={{ top: '1.5cqi', left: '50%', transform: 'translateX(-50%)', display: 'flex', gap: '0.6cqi', flexDirection: 'column' }}
+    >
+      {Array.from({ length: ROWS }).map((_, r) => (
+        <div key={r} style={{ display: 'flex', gap: '0.6cqi' }}>
+          {Array.from({ length: COLS }).map((_, c) => {
+            const active = r + 1 === row && c + 1 === col
+            return (
+              <div
+                key={c}
+                style={{
+                  width: '2.5cqi',
+                  height: '2.5cqi',
+                  borderRadius: '0.4cqi',
+                  background: active ? '#ef4444' : 'rgba(255,255,255,0.15)',
+                  border: active ? '0.3cqi solid rgba(239,68,68,0.6)' : '0.3cqi solid rgba(255,255,255,0.1)',
+                }}
+              />
+            )
+          })}
+        </div>
+      ))}
+    </div>
   )
 }
 
@@ -406,9 +451,12 @@ function IssueCard({ asset, enlarged = false }: { asset: JoinedAsset; enlarged?:
 }
 
 // ─────────────────────────────────────────────────────────────────────
-// ACTION_WINDOW / WINDOW
+// ACTION_WINDOW / WINDOW  (reveal-type action card)
 // ─────────────────────────────────────────────────────────────────────
 function WindowCard({ asset, enlarged = false }: { asset: JoinedAsset; enlarged?: boolean }) {
+  // window_action is the verb shown to the player; fall back to title if not set
+  const actionVerb = asset.window_action ?? asset.title
+
   return (
     <>
       <div className="absolute inset-0" style={{
@@ -429,15 +477,22 @@ function WindowCard({ asset, enlarged = false }: { asset: JoinedAsset; enlarged?
 
       <div className="relative z-20 flex items-center justify-between" style={{ padding: '4cqi 4cqi 2cqi' }}>
         <div className="card-number-badge bg-cyan-900/80 text-cyan-300">#{asset.card_number}</div>
-        <div className="card-type-badge bg-cyan-800/70 text-cyan-100">Window</div>
+        <div className="card-type-badge bg-cyan-800/70 text-cyan-100">Action</div>
       </div>
 
+      {/* Action verb — what the player does. Band is internal; not shown here. */}
       <div
         className={`relative z-20 font-bold text-cyan-100 leading-tight ${enlarged ? '' : 'line-clamp-2'}`}
         style={{ padding: '0 4cqi', fontSize: '5cqi' }}
       >
-        {asset.title}
+        {actionVerb}
       </div>
+
+      {asset.consumable && (
+        <div className="relative z-20 text-cyan-400/70 font-mono" style={{ padding: '1cqi 4cqi 0', fontSize: '3.5cqi' }}>
+          ×1
+        </div>
+      )}
 
       <div className="window-cutout" />
 
@@ -453,9 +508,11 @@ function WindowCard({ asset, enlarged = false }: { asset: JoinedAsset; enlarged?
 }
 
 // ─────────────────────────────────────────────────────────────────────
-// NOTCH / ACTION_NOTCH
+// NOTCH / ACTION_NOTCH  (draw-type action card)
 // ─────────────────────────────────────────────────────────────────────
 function NotchCard({ asset, enlarged = false }: { asset: JoinedAsset; enlarged?: boolean }) {
+  const actionVerb = asset.window_action ?? asset.title
+
   return (
     <>
       <div className="absolute inset-0" style={{
@@ -477,8 +534,18 @@ function NotchCard({ asset, enlarged = false }: { asset: JoinedAsset; enlarged?:
 
       <div className="relative z-20 flex items-center justify-between" style={{ padding: '4cqi 4cqi 2cqi' }}>
         <div className="card-number-badge bg-lime-900/80 text-lime-300">#{asset.card_number}</div>
-        <div className="card-type-badge bg-lime-800/70 text-lime-100">Notch</div>
+        <div className="card-type-badge bg-lime-800/70 text-lime-100">Item</div>
       </div>
+
+      {/* Show action verb if set; otherwise title is the item name */}
+      {asset.window_action && asset.window_action !== asset.title && (
+        <div
+          className="relative z-20 text-lime-400/70 font-mono uppercase tracking-wide"
+          style={{ padding: '0 4cqi', fontSize: '3.5cqi' }}
+        >
+          {actionVerb}
+        </div>
+      )}
 
       <div
         className={`relative z-20 font-bold text-lime-100 leading-tight ${enlarged ? '' : 'line-clamp-2'}`}
@@ -486,6 +553,12 @@ function NotchCard({ asset, enlarged = false }: { asset: JoinedAsset; enlarged?:
       >
         {asset.title}
       </div>
+
+      {asset.consumable && (
+        <div className="relative z-20 text-lime-400/70 font-mono" style={{ padding: '0 4cqi', fontSize: '3.5cqi' }}>
+          ×1
+        </div>
+      )}
 
       <div
         className="relative z-20 h-px bg-gradient-to-r from-lime-600/40 via-lime-500/20 to-transparent"
@@ -502,11 +575,7 @@ function NotchCard({ asset, enlarged = false }: { asset: JoinedAsset; enlarged?:
       </div>
 
       <div className="relative z-20 flex justify-end items-center" style={{ gap: '2cqi', padding: '2cqi 4cqi 4cqi' }}>
-        <div className="font-mono text-lime-700/60 uppercase tracking-widest" style={{ fontSize: '3.5cqi' }}>align notch →</div>
-        <div
-          className="rounded-full border border-lime-600/40"
-          style={{ width: '4cqi', height: '4cqi' }}
-        />
+        <div className="font-mono text-lime-700/60 uppercase tracking-widest" style={{ fontSize: '3.5cqi' }}>drop to use →</div>
       </div>
     </>
   )

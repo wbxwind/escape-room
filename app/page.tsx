@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { DndContext, DragOverlay, rectIntersection } from '@dnd-kit/core'
 import { LiveKitRoom, RoomAudioRenderer } from '@livekit/components-react'
 import '@livekit/components-styles'
@@ -10,6 +10,9 @@ import { CardBody } from '@/components/CardBody'
 import { DraggableCard, DropZone } from '@/components/board'
 import { VoiceHUD } from '@/components/VoiceHUD'
 import { MicOffIcon, AudioOffIcon } from '@/components/icons'
+import { ObjectivePanel } from '@/components/ObjectivePanel'
+import { ConsequenceLog } from '@/components/ConsequenceLog'
+import { StoryModal } from '@/components/StoryModal'
 import { resolveCardType, OBJECTIVE_TYPES } from '@/types'
 import { Deck } from '@/components/Deck'
 
@@ -82,8 +85,15 @@ function BoardView({ game }: { game: ReturnType<typeof useGameBoard> }) {
     drawCard, drawCardByNumber, resetGame,
   } = game
 
-  const [resetOpen, setResetOpen]   = useState(false)
+  const [resetOpen, setResetOpen]       = useState(false)
   const [inspectAsset, setInspectAsset] = useState<typeof items[0] | null>(null)
+  const [storyCard, setStoryCard]       = useState<typeof items[0] | null>(null)
+
+  // Auto-open StoryModal when a new card enters STORY_ZONE
+  const storyZoneCard = items.find(i => i.current_zone === 'STORY_ZONE')
+  useEffect(() => {
+    if (storyZoneCard) setStoryCard(storyZoneCard)
+  }, [storyZoneCard?.state_id])
 
   const deckCount   = items.filter(i => i.current_zone === 'DECK').length
   const activeAsset = items.find(i => i.state_id === activeId)
@@ -121,8 +131,9 @@ function BoardView({ game }: { game: ReturnType<typeof useGameBoard> }) {
             </select>
           </div>
 
-          {/* Right: reset + draw by number */}
+          {/* Right: consequence log + reset */}
           <div className="flex items-center gap-2">
+            <ConsequenceLog events={game.consequenceLog} />
 
             {/* Reset Game */}
             <div className="relative">
@@ -167,6 +178,9 @@ function BoardView({ game }: { game: ReturnType<typeof useGameBoard> }) {
           {/* Left sidebar — sessions + voice HUD */}
           <aside className="flex-none w-[80px] sm:w-[116px] md:w-[200px] border-r border-[rgba(255,255,255,0.05)] flex flex-col overflow-hidden" style={{ background: 'rgba(7,13,20,0.6)', paddingLeft: 'var(--safe-left)' }}>
             <div className="flex-1 overflow-y-auto p-3 flex flex-col gap-4">
+
+              {/* Objective + Character + Status panel */}
+              <ObjectivePanel items={items} />
 
               <div>
                 <div className="zone-label text-[9px] mb-2 pb-1.5 border-b border-[rgba(255,255,255,0.06)]">Sessions</div>
@@ -258,8 +272,9 @@ function BoardView({ game }: { game: ReturnType<typeof useGameBoard> }) {
                   <p className="text-[9px] text-zinc-600 font-mono mb-4 text-center max-w-[380px] leading-snug">
                     Place Situation cards in slots · Drop Action cards onto them to interact
                   </p>
-                  <div className="grid grid-cols-4 grid-rows-2 w-fit" style={{ gap: 'var(--card-gap)' }}>
-                    {[1, 2, 3, 4, 5, 6, 7, 8].map(slot => (
+                  {/* 5-col × 2-row grid: slots 1–5 = row 1, slots 6–10 = row 2 */}
+                  <div className="grid grid-cols-5 grid-rows-2 w-fit" style={{ gap: 'var(--card-gap)' }}>
+                    {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(slot => (
                       <PanoramaSlot key={slot} slot={slot} items={items} onInspect={setInspectAsset} />
                     ))}
                   </div>
@@ -360,6 +375,13 @@ function BoardView({ game }: { game: ReturnType<typeof useGameBoard> }) {
           </div>
         )}
 
+        {/* ── Story modal — auto-opens for STORY_ZONE cards ────────── */}
+        <StoryModal
+          card={storyCard}
+          onClose={() => setStoryCard(null)}
+          onDraw={game.drawCardByNumber}
+        />
+
         {/* ── Toast ────────────────────────────────────────────────── */}
         {toast && (
           <div className="fixed bottom-8 left-1/2 -translate-x-1/2 z-[100] max-w-xs text-center">
@@ -392,7 +414,9 @@ function DiscardStack({
   items: ReturnType<typeof useGameBoard>['items']
   onInspect: (a: ReturnType<typeof useGameBoard>['items'][0]) => void
 }) {
+  // Reverse: highest card_number last drawn → appears on TOP of pile (idx=0, z=length)
   const discardItems = items.filter(i => i.current_zone === 'DISCARD')
+    .slice().sort((a, b) => parseInt(b.card_number ?? '0', 10) - parseInt(a.card_number ?? '0', 10))
 
   if (discardItems.length === 0) {
     return (
@@ -474,6 +498,11 @@ function ObjectiveSlot({
   )
 }
 
+/** Convert linear slot (1–10) to row/col on a 5-wide grid. */
+function slotToCoord(slot: number): { row: number; col: number } {
+  return { row: Math.ceil(slot / 5), col: ((slot - 1) % 5) + 1 }
+}
+
 function PanoramaSlot({
   slot, items, onInspect,
 }: {
@@ -481,6 +510,8 @@ function PanoramaSlot({
   items: ReturnType<typeof useGameBoard>['items']
   onInspect: (a: ReturnType<typeof useGameBoard>['items'][0]) => void
 }) {
+  const { row, col } = slotToCoord(slot)
+
   const slotItems = items
     .filter(i => i.current_zone === 'PANORAMA' && i.panorama_slot === slot)
     .sort(a => {
@@ -489,7 +520,11 @@ function PanoramaSlot({
     })
 
   return (
-    <DropZone id={`panorama-${slot}`} label={`[ ${slot} ]`} className="w-[var(--card-w)] h-[var(--card-h)]">
+    <DropZone
+      id={`panorama-${slot}`}
+      label={`[ ${row}·${col} ]`}
+      className="w-[var(--card-w)] h-[var(--card-h)]"
+    >
       <div className="relative w-full h-full flex items-center justify-center">
         {slotItems.map((item, idx) => (
           <div
