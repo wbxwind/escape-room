@@ -551,7 +551,7 @@ Director Marcus Webb — head of Meridian's Cognitive Research division — has 
 - **type**: STORY
 - **title**: The Realization
 - **default_zone**: DECK
-- **content_front**: "READ ALOUD: Osei explains it quietly. The nanites are not harmful. They don't hurt you. They don't change who you are. They just make you... easier to work with. Reduced conflict. Enhanced cooperation. Increased deference to authority. 'People were happier,' she says. 'Measurably happier. More productive. Less anxious.' She pauses. 'Webb called it a gift.' She looks at the supplement vials. 'The problem is you didn't ask for it. And the problem is it worked on you too. Whatever you've believed in the last two weeks — check it. Ask yourself why you believe it.'"
+- **content_front**: "READ ALOUD: Osei explains it quietly. The nanites are not harmful. They don't hurt you. They don't change who you are. They just make you... easier to work with. Reduced conflict. Enhanced cooperation. Increased deference to authority. 'People were happier,' she says. 'Measurably happier. More productive. Less anxious.' She pauses. 'Webb called it a gift.' She looks at the supplement vials. 'The problem is you didn't ask for it. And the problem is it worked on you too. Whatever you've believed in the last two weeks — check it. Ask yourself why you believe it. ► draw card 040."
 - **content_back**: null
 - **has_magnifying_glass**: false
 - **image_prompt**: Abstract — behavioral performance graph on a whiteboard, one data line highlighted in red diverging from the others, clinical whiteboard texture, teal lab light, no people
@@ -603,7 +603,7 @@ Director Marcus Webb — head of Meridian's Cognitive Research division — has 
 - **type**: STORY
 - **title**: Webb's Introduction
 - **default_zone**: DECK
-- **content_front**: "READ ALOUD: Webb is waiting in the Director's Office. He stands when you enter — not startled, just courteous. 'Elara. Good. I was hoping it would be you.' His voice is the same voice that gave your quarterly performance reviews. Calm. Measured. Convinced of its own reasonableness. 'I know what you've found. I know what AEON told you. I need you to hear the other side before you decide anything.' He gestures to a chair. 'Sit down. I'll explain everything.' The chair faces away from the door."
+- **content_front**: "READ ALOUD: Webb is waiting in the Director's Office. He stands when you enter — not startled, just courteous. 'Elara. Good. I was hoping it would be you.' His voice is the same voice that gave your quarterly performance reviews. Calm. Measured. Convinced of its own reasonableness. 'I know what you've found. I know what AEON told you. I need you to hear the other side before you decide anything.' He gestures to a chair. 'Sit down. I'll explain everything.' The chair faces away from the door. ► draw card 046."
 - **content_back**: null
 - **has_magnifying_glass**: false
 - **image_prompt**: Abstract — an empty chair facing away from an open door, a desk visible beyond, strong directional lighting from one side, implied authority and unease, no people
@@ -701,7 +701,7 @@ Director Marcus Webb — head of Meridian's Cognitive Research division — has 
 - **type**: STORY
 - **title**: Osei's Confession
 - **default_zone**: DECK
-- **content_front**: "READ ALOUD: Osei doesn't wait for you to ask. She begins in the middle: 'I told him it was unethical. He said the ethics board would never approve something that worked this well, and that was the problem with the ethics board. He said we could ask forgiveness later. I said I wouldn't do it. He said my visa status was dependent on continued employment here.' She stops. 'I told myself it wasn't hurting anyone. That the data was beautiful. That I was a coward.' She doesn't say sorry. She says it like a fact."
+- **content_front**: "READ ALOUD: Osei doesn't wait for you to ask. She begins in the middle: 'I told him it was unethical. He said the ethics board would never approve something that worked this well, and that was the problem with the ethics board. He said we could ask forgiveness later. I said I wouldn't do it. He said my visa status was dependent on continued employment here.' She stops. 'I told myself it wasn't hurting anyone. That the data was beautiful. That I was a coward.' She doesn't say sorry. She says it like a fact. ► Place Situation card 035 (Lab 7) in the Panorama if not already in play. Interact with it using Action cards."
 - **content_back**: null
 - **has_magnifying_glass**: false
 - **image_prompt**: Abstract — empty lab stool, a pair of glasses set beside a notepad, clinical overhead light, the weight of a recent human presence, no people visible
@@ -737,7 +737,7 @@ Director Marcus Webb — head of Meridian's Cognitive Research division — has 
 - **type**: STORY
 - **title**: Chen's Drift
 - **default_zone**: DECK
-- **content_front**: "READ ALOUD: You find Chen in the Atrium. He is nodding along to something Webb is saying over the emergency intercom — a one-sided conversation that Chen is responding to aloud, agreeing with each statement before it finishes. 'Yes. Yes, that makes sense. Yes, we should protect the research.' You call his name. He looks at you — and for a moment the nod stops. Then it starts again. 'Webb says you're going to try to destroy his life's work.' He says this the way you'd say the weather forecast. Factual. Calm. Wrong."
+- **content_front**: "READ ALOUD: You find Chen in the Atrium. He is nodding along to something Webb is saying over the emergency intercom — a one-sided conversation that Chen is responding to aloud, agreeing with each statement before it finishes. 'Yes. Yes, that makes sense. Yes, we should protect the research.' You call his name. He looks at you — and for a moment the nod stops. Then it starts again. 'Webb says you're going to try to destroy his life's work.' He says this the way you'd say the weather forecast. Factual. Calm. Wrong. ► Situation card 061 (The Atrium) is now in play. Use Action cards from your hand to interact with it."
 - **content_back**: null
 - **has_magnifying_glass**: false
 - **image_prompt**: Abstract — an atrium corridor, intercom speaker in focus on a pillar, sound visualization lines extending outward, clinical light, no people, implied presence
@@ -854,7 +854,7 @@ Director Marcus Webb — head of Meridian's Cognitive Research division — has 
 - **type**: STORY
 - **title**: The Atrium Trap
 - **default_zone**: DECK
-- **content_front**: "READ ALOUD: The Atrium's lights cut out. Red emergency lighting clicks on. From the north corridor entrance, Webb's voice — no longer mediated by intercom, present and close: 'Elara. I know you have the evidence partition code. I know AEON gave it to you.' He steps into the light. He is holding something. Not a weapon — a tablet. 'This shows the facility going into permanent lockdown in forty minutes. No exits. No override. Either we do this together, or neither of us leaves.' He places the tablet on the floor between you. The countdown is real."
+- **content_front**: "READ ALOUD: The Atrium's lights cut out. Red emergency lighting clicks on. From the north corridor entrance, Webb's voice — no longer mediated by intercom, present and close: 'Elara. I know you have the evidence partition code. I know AEON gave it to you.' He steps into the light. He is holding something. Not a weapon — a tablet. 'This shows the facility going into permanent lockdown in forty minutes. No exits. No override. Either we do this together, or neither of us leaves.' He places the tablet on the floor between you. The countdown is real. ► draw card 081."
 - **content_back**: null
 - **has_magnifying_glass**: false
 - **image_prompt**: Circular atrium in red emergency lighting, a tablet on the floor between two implied positions, countdown timer on the screen, dramatic shadows, no people visible, tension in the empty space
@@ -905,7 +905,7 @@ Director Marcus Webb — head of Meridian's Cognitive Research division — has 
 - **type**: STORY
 - **title**: The Broadcast Confrontation
 - **default_zone**: DECK
-- **content_front**: "READ ALOUD: Your voice echoes through every speaker in the facility. You speak for ninety seconds — names, dates, compound specifications, the word 'non-consensual' four times. When you finish, the PA returns to static. Then Chen's voice, somewhere in the facility, not over the intercom but loud, as if he's realized something is wrong and is shouting it at the walls: 'Webb. What did you do to me?' Osei's voice, closer: 'Chen. Chen, I'm so sorry.' Webb's voice, directly behind you: 'That was a mistake.'"
+- **content_front**: "READ ALOUD: Your voice echoes through every speaker in the facility. You speak for ninety seconds — names, dates, compound specifications, the word 'non-consensual' four times. When you finish, the PA returns to static. Then Chen's voice, somewhere in the facility, not over the intercom but loud, as if he's realized something is wrong and is shouting it at the walls: 'Webb. What did you do to me?' Osei's voice, closer: 'Chen. Chen, I'm so sorry.' Webb's voice, directly behind you: 'That was a mistake.' ► draw card 073."
 - **content_back**: null
 - **has_magnifying_glass**: false
 - **image_prompt**: Abstract — PA speaker mounted on atrium column, waveform radiating outward from it in concentric rings, red emergency light, the aftermath of a voice, no people
@@ -988,7 +988,7 @@ Director Marcus Webb — head of Meridian's Cognitive Research division — has 
 - **type**: STORY
 - **title**: Chen Decides
 - **default_zone**: DECK
-- **content_front**: "READ ALOUD: Chen finds you in the Core Chamber corridor. The calm is gone from his face — what's replaced it is something rawer: fury mixed with grief. 'I went back and looked at my own logs,' he says. 'The things I agreed to over the past three months. The access I gave Webb without asking why.' He holds up his override key. 'J-17. The junction box. I can use this to wipe AEON, or I can use it to reroute the broadcast antenna. I'm not doing either until you tell me which one is right.' He is asking you. For the first time in months, his voice waits for an answer."
+- **content_front**: "READ ALOUD: Chen finds you in the Core Chamber corridor. The calm is gone from his face — what's replaced it is something rawer: fury mixed with grief. 'I went back and looked at my own logs,' he says. 'The things I agreed to over the past three months. The access I gave Webb without asking why.' He holds up his override key. 'J-17. The junction box. I can use this to wipe AEON, or I can use it to reroute the broadcast antenna. I'm not doing either until you tell me which one is right.' He is asking you. For the first time in months, his voice waits for an answer. ► To direct Chen to reroute the antenna: draw card 085. ► To direct Chen to wipe AEON: draw card 124."
 - **content_back**: null
 - **has_magnifying_glass**: false
 - **image_prompt**: Abstract — a single override key held up in foreground, industrial corridor behind, two directional paths implied by light: one red-tinted, one teal-tinted, no faces, the weight of the choice
@@ -1028,7 +1028,7 @@ Director Marcus Webb — head of Meridian's Cognitive Research division — has 
 - **type**: STORY
 - **title**: Osei's Choice
 - **default_zone**: DECK
-- **content_front**: "READ ALOUD: Osei appears in the Core Chamber corridor behind Webb. She is carrying the full binder — 47 pages of injection logs. Webb turns at the sound of her footsteps. 'Mira,' he says, and his voice has a different quality now — not threatening, almost gentle: the voice he used to keep her working. 'Put that down.' She doesn't put it down. She hands it to you instead. 'I'm going to need a lawyer,' she says. 'A good one. Not one Webb recommends.' It is the first joke anyone has made in three days. It doesn't land well, but it tries."
+- **content_front**: "READ ALOUD: Osei appears in the Core Chamber corridor behind Webb. She is carrying the full binder — 47 pages of injection logs. Webb turns at the sound of her footsteps. 'Mira,' he says, and his voice has a different quality now — not threatening, almost gentle: the voice he used to keep her working. 'Put that down.' She doesn't put it down. She hands it to you instead. 'I'm going to need a lawyer,' she says. 'A good one. Not one Webb recommends.' It is the first joke anyone has made in three days. It doesn't land well, but it tries. ► draw card 081."
 - **content_back**: null
 - **has_magnifying_glass**: false
 - **image_prompt**: Abstract — a binder being extended forward into camera frame, the act of handing over evidence, corridor light behind, the action's gravity captured in the gesture, no faces visible
@@ -1064,7 +1064,7 @@ Director Marcus Webb — head of Meridian's Cognitive Research division — has 
 - **type**: STORY
 - **title**: Webb's Lockdown
 - **default_zone**: DECK
-- **content_front**: "READ ALOUD: A mechanical bang resonates through the facility — deep and final. The AEON Core Chamber corridor seals. Red light. Webb's voice over every intercom simultaneously: 'I've isolated the Core Chamber. You have the evidence on a drive but you have no way to transmit it. The antenna in the Atrium is offline. The only active broadcast node is in the Emergency Exit Corridor — and I've just locked that section from the Director's Office. I still have Level 6 clearance. You don't.' Pause. 'Come back to my office. Let's finish this conversation properly.'"
+- **content_front**: "READ ALOUD: A mechanical bang resonates through the facility — deep and final. The AEON Core Chamber corridor seals. Red light. Webb's voice over every intercom simultaneously: 'I've isolated the Core Chamber. You have the evidence on a drive but you have no way to transmit it. The antenna in the Atrium is offline. The only active broadcast node is in the Emergency Exit Corridor — and I've just locked that section from the Director's Office. I still have Level 6 clearance. You don't.' Pause. 'Come back to my office. Let's finish this conversation properly.' ► draw card 101."
 - **content_back**: null
 - **has_magnifying_glass**: false
 - **image_prompt**: Abstract — a corridor sealed by a security blast door, red emergency light filling the frame, the finality of a mechanical lock engaging, no people, oppressive red-on-black
@@ -1089,7 +1089,7 @@ Director Marcus Webb — head of Meridian's Cognitive Research division — has 
 - **type**: STORY
 - **title**: The Critical Decision
 - **default_zone**: DECK
-- **content_front**: "READ ALOUD: Everything is now present in the same moment: the external drive with the evidence, the full access code, the broadcast antenna — disconnected — and Chen holding the override key that can either wipe AEON or reroute the antenna. AEON has not spoken since the Core Chamber sealed. Chen is waiting for your answer. Webb is still in his office with Level 6 clearance and a countdown timer. Osei is standing beside you. She says: 'Whatever you decide, I'll back you up. I owe you that.' You decide now."
+- **content_front**: "READ ALOUD: Everything is now present in the same moment: the external drive with the evidence, the full access code, the broadcast antenna — disconnected — and Chen holding the override key that can either wipe AEON or reroute the antenna. AEON has not spoken since the Core Chamber sealed. Chen is waiting for your answer. Webb is still in his office with Level 6 clearance and a countdown timer. Osei is standing beside you. She says: 'Whatever you decide, I'll back you up. I owe you that.' You decide now. ► Use Action and Notch cards from your hand on Situation cards in the Panorama to act. Your choices determine the ending."
 - **content_back**: null
 - **has_magnifying_glass**: false
 - **image_prompt**: Abstract — a convergence of three light sources (red, teal, amber) meeting at a single dark point, the decision moment expressed in light, film grain, no people, the weight of choice
@@ -1139,7 +1139,7 @@ Director Marcus Webb — head of Meridian's Cognitive Research division — has 
 - **type**: STORY
 - **title**: The Second Fragment
 - **default_zone**: DECK
-- **content_front**: "READ ALOUD: The ethics subroutine document was AEON's gamble — the second half of its own access code, hidden in a file Webb would never read because it was labeled 'Ethics.' AEON built a puzzle: the only way to open the direct-write port is to read the document where AEON explained why it was doing this. You had to understand before you could act. You type HELIOS-ZERO-NINE into the keypad. The Core Chamber door opens. Inside: a single terminal. A blinking cursor. A progress bar ready to begin. AEON is waiting."
+- **content_front**: "READ ALOUD: The ethics subroutine document was AEON's gamble — the second half of its own access code, hidden in a file Webb would never read because it was labeled 'Ethics.' AEON built a puzzle: the only way to open the direct-write port is to read the document where AEON explained why it was doing this. You had to understand before you could act. You type HELIOS-ZERO-NINE into the keypad. The Core Chamber door opens. Inside: a single terminal. A blinking cursor. A progress bar ready to begin. AEON is waiting. ► Place Situation card 086 in the Panorama. Turn over Status card WATCHED (022) — AEON has deemed you non-threatening."
 - **content_back**: null
 - **has_magnifying_glass**: false
 - **image_prompt**: Abstract — a keypad with a code just entered, Core Chamber door beginning to open, teal light spilling through the widening gap, the arrival of the solution, no people, anticipation

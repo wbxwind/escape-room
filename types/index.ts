@@ -3,8 +3,9 @@ export type Zone =
   | 'PLAYER_AREA'
   | 'PANORAMA'
   | 'DISCARD'
-  | 'OBJECTIVE'      // Character card + Status cards (stacked beneath it)
-  | 'STORY_ZONE'     // Staging zone: card displayed here while being read aloud
+  | 'OBJECTIVE'       // "Character" area — Character card + Status cards (stacked beneath it)
+  | 'OBJECTIVE_ZONE'  // "Objective" slot — current chapter Objective card (two-sided flip)
+  | 'STORY_ZONE'      // Transit zone — Story card shown in modal, then discarded
 
 /** @deprecated Use OBJECTIVE instead */
 export type LegacyZone = 'CHARACTER_ZONE'
@@ -156,8 +157,11 @@ export const PANORAMA_TYPES = new Set(['PANORAMA', 'SITUATION'])
 // Cards that can be played as actions (dropped onto Situation cards)
 export const ACTION_TYPES = new Set(['ACTION', 'ACTION_WINDOW', 'WINDOW', 'NOTCH', 'ACTION_NOTCH'])
 
-// Cards that live in the Objective area (character tracking)
-export const OBJECTIVE_TYPES = new Set(['CHARACTER', 'ENDING', 'STATUS', 'OBJECTIVE'])
+// Cards that live in the Character area (CHARACTER + STATUS stacked under it)
+export const OBJECTIVE_TYPES = new Set(['CHARACTER', 'ENDING', 'STATUS'])
+
+// Cards that go to the Objective slot (chapter objectives, two-sided)
+export const OBJECTIVE_ZONE_TYPES = new Set(['OBJECTIVE'])
 
 // Cards that go directly to the Player Area (hand)
 export const PLAYER_AREA_TYPES = new Set(['ISSUE', 'ACTION', 'ACTION_WINDOW', 'WINDOW', 'NOTCH', 'ACTION_NOTCH'])

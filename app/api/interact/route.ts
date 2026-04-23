@@ -56,7 +56,8 @@ async function upsertPosition(supabase: Supa, roomCode: string, assetId: string,
 function zoneForType(type: string | null): string {
   if (!type) return 'PLAYER_AREA'
   if (type === 'STORY') return 'STORY_ZONE'
-  if (['CHARACTER', 'STATUS', 'OBJECTIVE', 'ENDING'].includes(type)) return 'OBJECTIVE'
+  if (type === 'OBJECTIVE') return 'OBJECTIVE_ZONE'
+  if (['CHARACTER', 'STATUS', 'ENDING'].includes(type)) return 'OBJECTIVE'
   return 'PLAYER_AREA'
 }
 
@@ -181,7 +182,7 @@ async function executeConsequences(
 
       case 'FLIP_OBJECTIVE': {
         const { data: objPositions } = await supabase.from('card_positions').select('id, asset_id')
-          .eq('room_code', roomCode).eq('current_zone', 'OBJECTIVE').eq('flip_state', 'front')
+          .eq('room_code', roomCode).eq('current_zone', 'OBJECTIVE_ZONE').eq('flip_state', 'front')
         if (objPositions) {
           for (const pos of objPositions) {
             const { data: asset } = await supabase.from('game_assets').select('type').eq('id', pos.asset_id).maybeSingle()
@@ -197,7 +198,7 @@ async function executeConsequences(
 
       case 'NEW_CHAPTER': {
         const { data: objPositions } = await supabase.from('card_positions').select('id, asset_id')
-          .eq('room_code', roomCode).eq('current_zone', 'OBJECTIVE')
+          .eq('room_code', roomCode).eq('current_zone', 'OBJECTIVE_ZONE')
         if (objPositions) {
           for (const pos of objPositions) {
             const { data: asset } = await supabase.from('game_assets').select('type, objective_chapter').eq('id', pos.asset_id).maybeSingle()
@@ -206,7 +207,7 @@ async function executeConsequences(
               const nextChapter = (asset.objective_chapter ?? 1) + 1
               const { data: nextObj } = await supabase.from('game_assets').select('id').eq('type', 'OBJECTIVE').eq('objective_chapter', nextChapter).maybeSingle()
               if (nextObj) {
-                await upsertPosition(supabase, roomCode, nextObj.id, 'OBJECTIVE', null)
+                await upsertPosition(supabase, roomCode, nextObj.id, 'OBJECTIVE_ZONE', null)
                 results.push({ description: `Chapter ${nextChapter} begins.`, severity: 'warning' })
               }
               break

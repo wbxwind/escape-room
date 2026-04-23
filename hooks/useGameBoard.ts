@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useSensors, useSensor, PointerSensor, TouchSensor, type DragEndEvent, type DragStartEvent } from '@dnd-kit/core'
 import { supabase } from '@/lib/supabase'
-import { JoinedAsset, CardPosition, RoomParticipant, ConsequenceEvent, PANORAMA_TYPES, ACTION_TYPES, OBJECTIVE_TYPES, resolveCardType } from '@/types'
+import { JoinedAsset, CardPosition, RoomParticipant, ConsequenceEvent, PANORAMA_TYPES, ACTION_TYPES, OBJECTIVE_TYPES, OBJECTIVE_ZONE_TYPES, resolveCardType } from '@/types'
 
 export interface GameBoardState {
   items: JoinedAsset[]
@@ -28,6 +28,7 @@ export interface GameBoardState {
   drawCard: () => Promise<void>
   drawCardByNumber: (cardNumber: string) => Promise<void>
   resetGame: () => Promise<void>
+  clearStoryZone: () => Promise<void>
   consequenceLog: ConsequenceEvent[]
 }
 
@@ -49,7 +50,15 @@ function normaliseZone(raw: string | null | undefined): string {
   if (z === 'PLAYER' || z === 'HAND') return 'PLAYER_AREA'
   if (z === 'CHARACTER_ZONE' || z === 'CHAR') return 'OBJECTIVE'
   if (z === 'PANORAMA_AREA') return 'PANORAMA'
+  // OBJECTIVE_ZONE didn't exist before — no alias needed
   return z
+}
+
+/** Like normaliseZone but corrects OBJECTIVE cards that were stored under the CHARACTER zone. */
+function resolveZone(raw: string | null | undefined, cardType: string): string {
+  const zone = normaliseZone(raw)
+  if (zone === 'OBJECTIVE' && OBJECTIVE_ZONE_TYPES.has(cardType)) return 'OBJECTIVE_ZONE'
+  return zone
 }
 
 export function useGameBoard(): GameBoardState {
@@ -208,7 +217,7 @@ export function useGameBoard(): GameBoardState {
             const pos = positions?.find(p => p.asset_id === a.id) as CardPosition | undefined
 
             const rawZone = pos?.current_zone ?? a.default_zone ?? 'DECK'
-            const zone    = normaliseZone(rawZone)
+            const zone    = resolveZone(rawZone, resolveCardType(a))
 
             let slot = pos?.panorama_slot ?? null
             if (zone === 'PANORAMA' && !slot) slot = fallbackSlot <= 8 ? fallbackSlot++ : null
@@ -331,10 +340,11 @@ export function useGameBoard(): GameBoardState {
   const drawCard = useCallback(async () => {
     const deck = items.filter(i => i.current_zone === 'DECK')
     if (deck.length === 0) return setToast('The deck is empty!')
-    const card    = deck[0]
-    const type    = resolveCardType(card)
-    const destZone = OBJECTIVE_TYPES.has(type) ? 'OBJECTIVE'
-                   : type === 'STORY'           ? 'STORY_ZONE'
+    const card     = deck[0]
+    const type     = resolveCardType(card)
+    const destZone = OBJECTIVE_ZONE_TYPES.has(type) ? 'OBJECTIVE_ZONE'
+                   : OBJECTIVE_TYPES.has(type)      ? 'OBJECTIVE'
+                   : type === 'STORY'               ? 'STORY_ZONE'
                    : 'PLAYER_AREA'
     if (destZone === 'STORY_ZONE') await clearStoryZone()
     await moveAsset(card.state_id, destZone, null)
@@ -359,8 +369,9 @@ export function useGameBoard(): GameBoardState {
     }
 
     const type     = resolveCardType(card)
-    const destZone = OBJECTIVE_TYPES.has(type) ? 'OBJECTIVE'
-                   : type === 'STORY'           ? 'STORY_ZONE'
+    const destZone = OBJECTIVE_ZONE_TYPES.has(type) ? 'OBJECTIVE_ZONE'
+                   : OBJECTIVE_TYPES.has(type)      ? 'OBJECTIVE'
+                   : type === 'STORY'               ? 'STORY_ZONE'
                    : 'PLAYER_AREA'
     if (destZone === 'STORY_ZONE') await clearStoryZone()
     await moveAsset(card.state_id, destZone, null)
@@ -378,7 +389,7 @@ export function useGameBoard(): GameBoardState {
     // Optimistic local reset
     setItems(prev => prev.map(a => ({
       ...a,
-      current_zone:  normaliseZone(a.default_zone),
+      current_zone:  resolveZone(a.default_zone, resolveCardType(a)) as JoinedAsset['current_zone'],
       panorama_slot: null,
       attached_to:   null,
     })))
@@ -418,13 +429,13 @@ export function useGameBoard(): GameBoardState {
       return
     }
 
-    // ── Story Zone (staging for reading aloud) ─────────────────
-    if (overId === 'zone-STORY') {
-      if (cardType === 'STORY') {
-        await moveAsset(dragged.state_id, 'STORY_ZONE', null)
-      } else {
-        setToast('Only Story cards can be placed here to read aloud.')
+    // ── Objective Zone (chapter objectives — two-sided flip) ───
+    if (overId === 'zone-OBJECTIVE_ZONE') {
+      if (cardType !== 'OBJECTIVE') {
+        setToast('Only Objective cards go in the Objective slot.')
         await moveAsset(dragged.state_id, 'PLAYER_AREA', null)
+      } else {
+        await moveAsset(dragged.state_id, 'OBJECTIVE_ZONE', null)
       }
       return
     }
@@ -472,10 +483,10 @@ export function useGameBoard(): GameBoardState {
       return
     }
 
-    // ── Objective Area (Character + Status cards) ──────────────
+    // ── Character Area (Character + Status cards) ──────────────
     if (overId === 'zone-OBJECTIVE') {
       if (!isDraggedObjective) {
-        setToast('Only Character, Ending, or Status cards go in the Objective area.')
+        setToast('Only Character and Status cards go in the Character area.')
         await moveAsset(dragged.state_id, 'PLAYER_AREA', null)
         return
       }
@@ -517,7 +528,7 @@ export function useGameBoard(): GameBoardState {
     isDeafened, setIsDeafened,
     cachedId, liveKitToken, liveKitUrl,
     sensors, handleDragStart, handleDragEnd,
-    drawCard, drawCardByNumber, resetGame,
+    drawCard, drawCardByNumber, resetGame, clearStoryZone,
     consequenceLog,
   }
 }

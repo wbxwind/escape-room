@@ -10,7 +10,6 @@ import { CardBody } from '@/components/CardBody'
 import { DraggableCard, DropZone } from '@/components/board'
 import { VoiceHUD } from '@/components/VoiceHUD'
 import { MicOffIcon, AudioOffIcon } from '@/components/icons'
-import { ObjectivePanel } from '@/components/ObjectivePanel'
 import { ConsequenceLog } from '@/components/ConsequenceLog'
 import { StoryModal } from '@/components/StoryModal'
 import { resolveCardType, OBJECTIVE_TYPES } from '@/types'
@@ -82,7 +81,7 @@ function BoardView({ game }: { game: ReturnType<typeof useGameBoard> }) {
     isDeafened, setIsDeafened,
     cachedId, sensors,
     handleDragStart, handleDragEnd,
-    drawCard, drawCardByNumber, resetGame,
+    drawCard, drawCardByNumber, resetGame, clearStoryZone,
   } = game
 
   const [resetOpen, setResetOpen]       = useState(false)
@@ -179,9 +178,6 @@ function BoardView({ game }: { game: ReturnType<typeof useGameBoard> }) {
           <aside className="flex-none w-[80px] sm:w-[116px] md:w-[200px] border-r border-[rgba(255,255,255,0.05)] flex flex-col overflow-hidden" style={{ background: 'rgba(7,13,20,0.6)', paddingLeft: 'var(--safe-left)' }}>
             <div className="flex-1 overflow-y-auto p-3 flex flex-col gap-4">
 
-              {/* Objective + Character + Status panel */}
-              <ObjectivePanel items={items} />
-
               <div>
                 <div className="zone-label text-[9px] mb-2 pb-1.5 border-b border-[rgba(255,255,255,0.06)]">Sessions</div>
                 <div className="flex flex-col gap-1.5">
@@ -244,24 +240,17 @@ function BoardView({ game }: { game: ReturnType<typeof useGameBoard> }) {
             <div className={`flex-1 board-grid overflow-hidden flex items-center justify-center p-3 md:p-6 ${isDragging ? 'board-grid-active' : ''}`}>
               <div className="flex items-start flex-wrap justify-center" style={{ gap: 'calc(var(--card-gap) * 3)' }}>
 
-                {/* Left column: Objective + Story zone */}
+                {/* Left column: Character area + Objective slot */}
                 <div className="flex flex-col flex-none" style={{ gap: 'var(--card-gap)' }}>
-                  <SlotColumn label="Objective">
-                    <DropZone id="zone-OBJECTIVE" label="[ OBJECTIVE ]" className="w-[var(--card-w)] h-[var(--card-h)]">
+                  <SlotColumn label="Character">
+                    <DropZone id="zone-OBJECTIVE" label="[ CHARACTER ]" className="w-[var(--card-w)] h-[var(--card-h)]">
                       <ObjectiveSlot items={items} activeId={activeId} onInspect={setInspectAsset} />
                     </DropZone>
                   </SlotColumn>
 
-                  <SlotColumn label="Story — read aloud">
-                    <DropZone id="zone-STORY" label="[ STORY ]" className="w-[var(--card-w)] h-[var(--card-h)]">
-                      {(() => {
-                        const storyCard = items.find(i => i.current_zone === 'STORY_ZONE')
-                        return storyCard ? (
-                          <div onDoubleClick={() => setInspectAsset(storyCard)}>
-                            <DraggableCard asset={storyCard} />
-                          </div>
-                        ) : null
-                      })()}
+                  <SlotColumn label="Objective">
+                    <DropZone id="zone-OBJECTIVE_ZONE" label="[ OBJECTIVE ]" className="w-[var(--card-w)] h-[var(--card-h)]">
+                      <ObjectiveZoneSlot items={items} activeId={activeId} onInspect={setInspectAsset} />
                     </DropZone>
                   </SlotColumn>
                 </div>
@@ -375,10 +364,10 @@ function BoardView({ game }: { game: ReturnType<typeof useGameBoard> }) {
           </div>
         )}
 
-        {/* ── Story modal — auto-opens for STORY_ZONE cards ────────── */}
+        {/* ── Story modal — auto-opens for STORY_ZONE cards, discards on close ── */}
         <StoryModal
           card={storyCard}
-          onClose={() => setStoryCard(null)}
+          onClose={() => { setStoryCard(null); clearStoryZone() }}
           onDraw={game.drawCardByNumber}
         />
 
@@ -479,6 +468,36 @@ function ObjectiveSlot({
       if (!aIsChar && bIsChar) return -1
       return (b.panorama_slot ?? 0) - (a.panorama_slot ?? 0)
     })
+
+  return (
+    <div className="relative w-full h-full flex items-center justify-center">
+      {objItems.map((item, idx) => {
+        const isPeek = activeId === item.state_id
+        return (
+          <div
+            key={item.state_id}
+            className={idx > 0 && !isPeek ? 'absolute top-[28px] left-0 right-0' : isPeek ? 'relative z-50' : 'relative'}
+            onDoubleClick={() => onInspect(item)}
+          >
+            <DraggableCard asset={item} />
+          </div>
+        )
+      })}
+    </div>
+  )
+}
+
+/** Chapter Objective slot — shows the two-sided OBJECTIVE card for the current act. */
+function ObjectiveZoneSlot({
+  items, activeId, onInspect,
+}: {
+  items: ReturnType<typeof useGameBoard>['items']
+  activeId: string | null
+  onInspect: (a: ReturnType<typeof useGameBoard>['items'][0]) => void
+}) {
+  const objItems = items
+    .filter(i => i.current_zone === 'OBJECTIVE_ZONE')
+    .sort((a, b) => (b.objective_chapter ?? 0) - (a.objective_chapter ?? 0))
 
   return (
     <div className="relative w-full h-full flex items-center justify-center">

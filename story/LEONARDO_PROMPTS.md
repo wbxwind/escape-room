@@ -16,14 +16,30 @@ photorealistic 3D render, Unreal Engine 5, cinematic lighting, deep teal-cyan at
 
 ---
 
+## Board Zone Reference (updated)
+
+| Zone | Label in UI | Accepts |
+|---|---|---|
+| `OBJECTIVE` | **Character** | CHARACTER card (top) + STATUS cards stacked below |
+| `OBJECTIVE_ZONE` | **Objective** | OBJECTIVE card — two-sided, flips to reveal sub-objective |
+| `STORY_ZONE` | *(no slot — transit only)* | STORY card briefly shown in modal, then discarded |
+| `PANORAMA` | **The Panorama** | SITUATION cards (10 slots, 5×2 grid) |
+| `PLAYER_AREA` | **Player Area** | ACTION / ISSUE / WINDOW / NOTCH cards |
+| `DISCARD` | **Discard** | All discarded cards including read Story cards |
+
+---
+
 ## Card Type — Prompt Structure Reference
 
-| Type | Structure |
-|---|---|
-| SITUATION | `[style lock], [room description], wide-angle establishing shot, depth of field, grated floor panels, fluorescent strip lights, no people` |
-| CHARACTER | `[style lock], half-portrait composition, [character description], dramatic rim lighting, face partially in shadow, rose-red accent light, 2:3 portrait` |
-| ENDING (good) | `[style lock], [scene], warm amber light emerging through opening, suggestion of exit, breathing space, hope` |
-| ENDING (bad) | `[style lock], [scene], red emergency lighting dominant, sealed doors, claustrophobic framing, no visible exit` |
+| Type | Board Zone | Structure |
+|---|---|---|
+| SITUATION | PANORAMA | `[style lock], [room description], wide-angle establishing shot, depth of field, grated floor panels, fluorescent strip lights, no people` |
+| CHARACTER | OBJECTIVE (Character slot) | `[style lock], half-portrait composition, [character description], dramatic rim lighting, face partially in shadow, rose-red accent light, 2:3 portrait` |
+| OBJECTIVE | OBJECTIVE_ZONE (Objective slot) | `[style lock], symbolic chapter emblem, deep purple-indigo bg, ornate mission statement scroll, teal circuit-glow border, two-sided — front=active objective, back=revealed sub-objective` |
+| STATUS | OBJECTIVE (stacked under CHARACTER) | `[style lock], symbolic emblem of [condition], dark jewel-tone background (deep indigo/navy), centered icon, ornate border, escalation indicator if flipped` |
+| STORY | DISCARD (read aloud then discard) | `[style lock], abstract impression of [story beat], motion blur, light trails, surreal, non-literal` |
+| ENDING (good) | DISCARD (triggers ending) | `[style lock], [scene], warm amber light emerging through opening, suggestion of exit, breathing space, hope` |
+| ENDING (bad) | DISCARD (triggers ending) | `[style lock], [scene], red emergency lighting dominant, sealed doors, claustrophobic framing, no visible exit` |
 
 ---
 ---
@@ -198,6 +214,53 @@ photorealistic 3D render, Unreal Engine 5, cinematic lighting, deep teal-cyan at
 
 ---
 
+---
+
+## OBJECTIVE CARDS — Chapter Objectives
+
+*These sit in the "Objective" slot (OBJECTIVE_ZONE). Two-sided: front shows the active objective, back shows the revealed sub-objective. Deep purple-indigo dominant color to visually distinguish from SITUATION cards.*
+
+---
+
+### Card 127 — Act I Objective: Locate the Source
+> Status: ✗ needs image
+
+**Front face**: Active mission scroll — "Locate the Source of the Contamination"
+**Back face**: Sub-objective revealed — "Recover Osei's Missing Trial Binder"
+
+**Prompt**:
+[style lock token], ornate mission scroll or terminal screen displaying a classified directive, deep purple-indigo background, teal-cyan circuit-trace border pattern, the text area shows a stamped CLASSIFIED header with institutional seal, emergency amber accent light from lower-left, the card feels official and ominous, symbolic — not literal, top-down product shot style with slight 3/4 angle, 2:3 portrait ratio
+
+**Settings**: Guidance 7, Steps 30, Model: Leonardo Phoenix
+
+---
+
+### Card 128 — Act II Objective: Secure the Evidence
+> Status: ✗ needs image
+
+**Front face**: "Secure the Evidence Before Webb Does"
+**Back face**: "Find AEON's Hidden Access Terminal"
+
+**Prompt**:
+[style lock token], evidence dossier spread on a dark steel surface, classified folder with red tabs, USB drive, printed photos of redacted documents, an EVIDENCE SECURED rubber stamp in red ink partially visible, deep purple-indigo ambient fill, teal circuit glow tracing the folder edges, one document slightly out of alignment suggesting urgency, top-down flat lay, 2:3 portrait ratio
+
+**Settings**: Guidance 7, Steps 30, Model: Leonardo Phoenix
+
+---
+
+### Card 129 — Act III Objective: End the Breach
+> Status: ✗ needs image
+
+**Front face**: "Stop the Cover-Up — One Way or Another"
+**Back face**: "The Antidote Must Reach the Right People"
+
+**Prompt**:
+[style lock token], a single vial of luminescent blue-green fluid on a dark industrial surface, the vial has a Meridian Dynamics label with COMPOUND 7-X in small stencil text, three empty vial holders beside it suggesting scarcity and choice, deep purple-indigo shadow fill, electric cyan glow from the vial itself, surrounding darkness heavy and pressing in, the light from the vial is the only warmth, 2:3 portrait ratio
+
+**Settings**: Guidance 7, Steps 30, Model: Leonardo Phoenix
+
+---
+
 ## Upload Checklist
 
 After generating, save files as `[card_number].jpg` and upload to Supabase Storage bucket `game-assets`.
@@ -226,3 +289,6 @@ WHERE card_number = 'NNN';
 | The Silence | `124.jpg` | `124` |
 | The Cover-Up | `125.jpg` | `125` |
 | Signal | `126.jpg` | `126` |
+| Act I Objective — Locate the Source | `127.jpg` | `127` |
+| Act II Objective — Secure the Evidence | `128.jpg` | `128` |
+| Act III Objective — End the Breach | `129.jpg` | `129` |

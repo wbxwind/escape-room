@@ -41,11 +41,12 @@ function getStatusIcon(title: string): string {
 }
 
 export function ObjectivePanel({ items }: ObjectivePanelProps) {
-  const objectiveZone = items.filter(i => i.current_zone === 'OBJECTIVE')
+  const characterZone = items.filter(i => i.current_zone === 'OBJECTIVE')
+  const objectiveZone = items.filter(i => i.current_zone === 'OBJECTIVE_ZONE')
 
-  const character = objectiveZone.find(i => resolveCardType(i) === 'CHARACTER')
+  const character = characterZone.find(i => resolveCardType(i) === 'CHARACTER')
   const objective = objectiveZone.find(i => resolveCardType(i) === 'OBJECTIVE')
-  const statuses  = objectiveZone.filter(i => resolveCardType(i) === 'STATUS')
+  const statuses  = characterZone.filter(i => resolveCardType(i) === 'STATUS')
 
   // Derive health state from character card flip_state
   const healthKey = !character ? null
