@@ -1,36 +1,25 @@
-# Agent Directive: Game UI Responsiveness & Interaction Overhaul
+# Supabase RLS Security Policy Directive
 
-## 1. Zero Vertical Scrolling (Board & Hand)
-- The main game board area (middle panel) must **NEVER** have a vertical scrollbar.
-- All components within the board must scale to fit the available vertical space perfectly.
+**Goal:** Resolve Supabase warnings about Row Level Security (RLS) being disabled on public tables without breaking the current application's functionality.
 
-## 2. Dynamic Card & Slot Scaling
-- **Aspect Ratio Integrity**: Cards must resize based on container height. They must **NEVER** be squished or compressed horizontally (no "sliver" cards).
-- **Unified Sizing**: Cards in the Board/Panorama, Player Hand, and Discard Pile must share the same calculated size for consistency.
-- **Troubleshooting**: Use `flex-shrink: 0` and ensure parent containers respect the card's aspect-ratio-derived width. Scale by **height** first.
+## Target Tables:
+- `room_participants`
+- `game_assets`
+- `interactions`
+- `room_state`
 
-## 3. Player Hand Improvements
-- **Horizontal Scroll Only**: Horizontal scrolling is allowed in the hand area **ONLY** when the card count exceeds the available width.
-- **Rotation Padding**: Ensure enough internal padding/margin in the hand container so card corners are not cropped when rotated.
-- **Full Visibility**: Cards in the hand must be 100% visible from top to bottom.
+## Instructions for the Agent:
+1. **Enable RLS:** You must generate a Supabase migration to enable Row Level Security on the target tables listed above. Use the following command for each table:
+   `ALTER TABLE public.[table_name] ENABLE ROW LEVEL SECURITY;`
 
-## 4. Side Panels & Discard Pile
-- **Right Panel Width**: The right panel width should be derived from the **unified card width** plus padding. It must not force cards to squish.
-- **Discard Stacking Effect**: 
-    - Replace the vertical list with a **stacking system**.
-    - Apply a slight "slide" offset to stacked cards so the **Number** and **Type** remain visible.
-    - Reference the existing "Situation + Action" stacking effect as a template.
-- **Padding**: Add internal padding to the Discard container so cards don't touch the edges.
+2. **Permissive Policies (Crucial):** Because the current application logic relies on these tables being publicly accessible (and we do not want to rewrite the app logic right now), you MUST create a fully permissive policy for each table. This policy should allow ALL operations (`SELECT`, `INSERT`, `UPDATE`, `DELETE`) for all roles, effectively keeping the tables open while satisfying the security linter.
+   - You must use this exact policy structure for every target table:
+     ```sql
+     CREATE POLICY "Allow public access" 
+     ON public.[table_name] 
+     FOR ALL 
+     USING (true) 
+     WITH CHECK (true);
+     ```
 
-## 5. Card Detailed View (Inspection)
-- **Full Text Display**: Ensure the entire narrative text string is displayed. 
-- **Remove Truncation**: Remove all `line-clamp`, `text-overflow: ellipsis`, and fixed-height constraints on text containers in the detailed view (check `CardBody.tsx` and similar).
-- **Internal Scroll**: Implement a vertical scrollbar within the beige/content area of the card to allow reading long texts in full.
-
-## 6. Implementation Checklist
-- [ ] No vertical scrollbar on the main board.
-- [ ] Unified card sizes across all areas.
-- [ ] Cards maintain aspect ratio (no squishing).
-- [ ] Hand rotation does not clip corners.
-- [ ] Discard pile uses the slide-stacking effect.
-- [ ] Inspection view shows full text with internal scrolling.
+3. **No App Code Changes:** Do NOT modify the application's frontend or backend code to include authentication logic, headers, or state changes. The goal is purely to silence the Supabase security warnings by enabling RLS with an open policy at the database level.
