@@ -1665,3 +1665,318 @@ Director Marcus Webb — head of Meridian's Cognitive Research division — has 
 - **content_back**: null
 - **has_magnifying_glass**: false
 - **image_prompt**: Wide-angle exterior, loading dock exit, sky beginning to lighten with the first pale gold of dawn — the only warm daylight in the scenario — exit door open, one figure standing in the doorway facing outward, the horizon, AEON's absence felt as presence, the world changed, hopeful and mournful simultaneously
+
+---
+
+## SECTION 4 — PANORAMIC SCENE PANELS (Cards added in coherence pass, 2026-04-23)
+
+> 20 new SITUATION cards, 2 per existing scene. Each scene maps to one 16:9 landscape image sliced into three equal vertical thirds. The existing scene card occupies one panel (see RENUMBER_PLAN.md for panel role assignments). New cards fill the remaining two panels. No existing card numbers change.
+>
+> scene_group identifiers are SCREAMING_SNAKE_CASE and match across all three panels of a scene.
+> scene_position is LEFT | CENTER | RIGHT.
+
+---
+
+### Card 130
+- **type**: SITUATION
+- **title**: Server Room Corridor — Center
+- **scene_group**: SERVER_ROOM_CORRIDOR
+- **scene_position**: CENTER
+- **default_zone**: DECK
+- **panorama_row**: 1
+- **panorama_col**: 2
+- **content_front**: "A central section of the server aisle. A wall-mounted terminal alcove sits mid-corridor, its status display cycling through amber and green. The overhead fluorescent strip has been partially unscrewed at one end, hanging at a slight angle, its tube flickering on a three-second interval."
+- **has_magnifying_glass**: false
+- **image_prompt**: Server Room Corridor — CENTER third slice of the 16:9 scene. Mid-aisle view: wall-mounted terminal alcove with status display cycling amber/green, overhead fluorescent tube hanging slightly unscrewed and flickering, teal-cyan atmosphere, grated floor panels, near-black shadows, no people
+- **interactions**: none
+
+---
+
+### Card 131
+- **type**: SITUATION
+- **title**: Server Room Corridor — Right
+- **scene_group**: SERVER_ROOM_CORRIDOR
+- **scene_position**: RIGHT
+- **default_zone**: DECK
+- **panorama_row**: 1
+- **panorama_col**: 3
+- **content_front**: "The corridor's far junction. Two pipes cross overhead at a right angle. A sealed access panel at shoulder height carries a handwritten adhesive label: 'J-17 — MAINTENANCE ONLY.' Red emergency lighting pools at floor level below it."
+- **has_magnifying_glass**: false
+- **image_prompt**: Server Room Corridor — RIGHT third slice of the 16:9 scene. Far junction of corridor: two industrial pipes crossing overhead, sealed access panel with handwritten label 'J-17 MAINTENANCE ONLY', red emergency lighting pooling on grated floor, depth of corridor receding into darkness, no people
+- **interactions**: none
+
+---
+
+### Card 132
+- **type**: SITUATION
+- **title**: Security Terminal Bay — Left
+- **scene_group**: SECURITY_TERMINAL_BAY
+- **scene_position**: LEFT
+- **default_zone**: DECK
+- **panorama_row**: 1
+- **panorama_col**: 1
+- **content_front**: "The entry threshold to the security bay. A badge reader mounted beside a frosted glass partition cycles through a blank name field, resetting every four seconds. A visitor log clipboard hangs from a hook beside it — the last page has been torn out cleanly."
+- **has_magnifying_glass**: false
+- **image_prompt**: Security Terminal Bay — LEFT third slice of the 16:9 scene. Entry threshold: badge reader on wall beside frosted glass partition cycling blank display, visitor log clipboard with torn page, industrial mesh wall, teal-cyan overhead light, no people
+- **interactions**: none
+
+---
+
+### Card 133
+- **type**: SITUATION
+- **title**: Security Terminal Bay — Right
+- **scene_group**: SECURITY_TERMINAL_BAY
+- **scene_position**: RIGHT
+- **default_zone**: DECK
+- **panorama_row**: 1
+- **panorama_col**: 3
+- **content_front**: "The secondary equipment wall. Rows of keycard cabinets line the surface, numbered hooks — most empty. A handwritten Post-it note on one vacant hook reads: 'OSEI: DO NOT REISSUE.' Three keycard slots show forced-entry damage, the locking tongues bent inward."
+- **has_magnifying_glass**: false
+- **image_prompt**: Security Terminal Bay — RIGHT third slice of the 16:9 scene. Keycard cabinet wall: numbered hooks mostly empty, Post-it note on vacant hook, three forced-entry damaged slots with bent locking tongues, teal monitor glow from left side, near-black shadows, no people
+- **interactions**: none
+
+---
+
+### Card 134
+- **type**: SITUATION
+- **title**: Cooling System Vent Access — Left
+- **scene_group**: COOLING_VENT_ACCESS
+- **scene_position**: LEFT
+- **default_zone**: DECK
+- **panorama_row**: 1
+- **panorama_col**: 2
+- **content_front**: "A service corridor section narrowing toward the vent alcove. Industrial pipes lagged with cyan-colored insulation run the ceiling length. A pressure gauge mounted at eye level reads just above nominal. The floor grate below it shows a fresh row of scuff marks — something heavy dragged this way recently."
+- **has_magnifying_glass**: false
+- **image_prompt**: Cooling System Vent Access — LEFT third slice of the 16:9 scene. Narrowing service corridor: cyan-insulated industrial pipes on ceiling, pressure gauge on wall reading above nominal, grated floor with fresh scuff marks, teal-cyan LED glow, heavy industrial mood, no people
+- **interactions**: none
+
+---
+
+### Card 135
+- **type**: SITUATION
+- **title**: Cooling System Vent Access — Right
+- **scene_group**: COOLING_VENT_ACCESS
+- **scene_position**: RIGHT
+- **default_zone**: DECK
+- **panorama_row**: 1
+- **panorama_col**: 4
+- **content_front**: "The crawlspace exit point beyond the vent fans. A tight horizontal shaft opens at ankle height in the far wall, its edges scratched bright where the finish has been worn away. A metal shelf unit has been shoved aside to clear the path, one caster wheel snapped off and lying on the grate beside it."
+- **has_magnifying_glass**: false
+- **image_prompt**: Cooling System Vent Access — RIGHT third slice of the 16:9 scene. Crawlspace exit: horizontal shaft opening at ankle height in far wall with scratch-bright worn edges, metal shelf unit shoved aside, broken caster on grated floor, cyan LED glow from shaft interior, tight industrial space, no people
+- **interactions**: none
+
+---
+
+### Card 136
+- **type**: SITUATION
+- **title**: Maintenance Hatch B3 — Left
+- **scene_group**: MAINTENANCE_HATCH_B3
+- **scene_position**: LEFT
+- **default_zone**: DECK
+- **panorama_row**: 1
+- **panorama_col**: 3
+- **content_front**: "The maintenance approach corridor. A row of storage cages lines the left wall, most padlocked, one standing open and ransacked — contents scattered across the floor. A first aid kit has been emptied and not replaced, its red case left open beside the debris. Emergency lighting here is amber, not white."
+- **has_magnifying_glass**: false
+- **image_prompt**: Maintenance Hatch B3 — LEFT third slice of the 16:9 scene. Approach corridor: row of storage cages left wall, one open and ransacked, empty first aid kit red case on floor, amber emergency lighting (not white), industrial pipes ceiling, debris scattered, heavy oppressive mood, no people
+- **interactions**: none
+
+---
+
+### Card 137
+- **type**: SITUATION
+- **title**: Maintenance Hatch B3 — Right
+- **scene_group**: MAINTENANCE_HATCH_B3
+- **scene_position**: RIGHT
+- **default_zone**: DECK
+- **panorama_row**: 1
+- **panorama_col**: 5
+- **content_front**: "The far side of the hatch, visible through the small reinforced porthole window. A maintenance utility corridor beyond: a portable work light on the floor casting hard shadows, a single cot set against the far wall with a folded jacket as a pillow. Writing in black marker on the wall is visible but illegible through the glass at this distance."
+- **has_magnifying_glass**: false
+- **image_prompt**: Maintenance Hatch B3 — RIGHT third slice of the 16:9 scene. View through reinforced porthole window: utility corridor beyond, portable work light on floor casting hard shadows, cot against far wall with folded jacket, black marker writing on wall illegible at distance, red emergency light tint, implied isolation, no people
+- **interactions**: none
+
+---
+
+### Card 138
+- **type**: SITUATION
+- **title**: Lab 7 — Left Anteroom
+- **scene_group**: LAB_7_COGNITIVE_WING
+- **scene_position**: LEFT
+- **default_zone**: DECK
+- **panorama_row**: 1
+- **panorama_col**: 3
+- **content_front**: "The Lab 7 decontamination anteroom. A biohazard airlock with both doors propped open by chairs wedged under their handles. A biohazard suit hangs partially from a hook, one glove on the floor below it. The air pressure differential display between the two doors reads zero — the integrity seal has been broken."
+- **has_magnifying_glass**: false
+- **image_prompt**: Lab 7 — LEFT third slice of the 16:9 scene. Decontamination anteroom: biohazard airlock with both doors propped open by chairs, partial biohazard suit on hook with one glove on floor, pressure differential display reading zero, teal-cyan clinical overhead light, pharmaceutical environment implied, no people
+- **interactions**: none
+
+---
+
+### Card 139
+- **type**: SITUATION
+- **title**: Lab 7 — Center Workbench
+- **scene_group**: LAB_7_COGNITIVE_WING
+- **scene_position**: CENTER
+- **default_zone**: DECK
+- **panorama_row**: 1
+- **panorama_col**: 4
+- **content_front**: "A mid-lab workbench — centrifuges still running, their displays showing active cycles with no operator. A tablet propped against a reagent rack shows a video recording: paused on a frame of Dr. Osei, mid-sentence, speaking to the camera. The timestamp reads Day 1, 23:41."
+- **has_magnifying_glass**: false
+- **image_prompt**: Lab 7 — CENTER third slice of the 16:9 scene. Mid-lab workbench: centrifuges running with active displays and no operator, tablet propped on reagent rack showing paused video of implied figure mid-sentence, amber vials in rows, teal-cyan laboratory overhead light, clinical and lived-in simultaneously, no people
+- **interactions**: none
+
+---
+
+### Card 140
+- **type**: SITUATION
+- **title**: Director's Office — Center Credenza
+- **scene_group**: DIRECTORS_OFFICE
+- **scene_position**: CENTER
+- **default_zone**: DECK
+- **panorama_row**: 2
+- **panorama_col**: 2
+- **content_front**: "The office's glass-fronted credenza — locked display cases holding awards and framed citations, all from Meridian Systems. One citation reads 'Excellence in Cognitive Research Ethics — 2021.' A key on a lanyard has been left hanging in the credenza lock, slightly swaying."
+- **has_magnifying_glass**: false
+- **image_prompt**: Director's Office — CENTER third slice of the 16:9 scene. Glass-fronted credenza: locked display cases with awards and framed citation readable as 'Excellence in Cognitive Research Ethics — 2021', key on lanyard hanging in lock, teal ambient light, dark executive aesthetic, irony in the ethics citation, no people
+- **interactions**: none
+
+---
+
+### Card 141
+- **type**: SITUATION
+- **title**: Director's Office — Right Wall
+- **scene_group**: DIRECTORS_OFFICE
+- **scene_position**: RIGHT
+- **default_zone**: DECK
+- **panorama_row**: 2
+- **panorama_col**: 3
+- **content_front**: "The office's back wall — a whiteboard dense with a project flow diagram. The project name at the top has been scrubbed with a dry-erase marker, but the ghost of letters remains visible: HELIOS. Post-it notes cluster around one stage: 'CONSENT BYPASS — CONFIRMED.'"
+- **has_magnifying_glass**: false
+- **image_prompt**: Director's Office — RIGHT third slice of the 16:9 scene. Back wall whiteboard: project flow diagram, project name at top partially scrubbed leaving ghost letters 'HELIOS' visible, cluster of Post-it notes reading 'CONSENT BYPASS — CONFIRMED', teal corporate ambient light, oppressive authority aesthetic, no people
+- **interactions**: none
+
+---
+
+### Card 142
+- **type**: SITUATION
+- **title**: The Atrium — Left Corridor Entrance
+- **scene_group**: ATRIUM_CENTRAL_HUB
+- **scene_position**: LEFT
+- **default_zone**: DECK
+- **panorama_row**: 2
+- **panorama_col**: 1
+- **content_front**: "One of the four sector corridors feeding into the atrium — the maintenance sector entrance. Partially barricaded with overturned furniture: two chairs and a filing cabinet on its side. A security camera above the entrance has been physically rotated to aim at the ceiling."
+- **has_magnifying_glass**: false
+- **image_prompt**: The Atrium — LEFT third slice of the 16:9 scene. Maintenance sector corridor entrance: partially barricaded with overturned chairs and a filing cabinet on its side, security camera above physically rotated to face ceiling, teal-cyan ambient light from atrium beyond, industrial oppressive mood, no people
+- **interactions**: none
+
+---
+
+### Card 143
+- **type**: SITUATION
+- **title**: The Atrium — Upper Walkway
+- **scene_group**: ATRIUM_CENTRAL_HUB
+- **scene_position**: RIGHT
+- **default_zone**: DECK
+- **panorama_row**: 2
+- **panorama_col**: 3
+- **content_front**: "The atrium's elevated observation walkway — an upper-level ring accessible via a spiral staircase. The railing at the top of the stairs is bent outward as if something heavy pushed through it. From this vantage point, the main floor below is fully visible: the central column, the abandoned tools, and all four corridor mouths."
+- **has_magnifying_glass**: false
+- **image_prompt**: The Atrium — RIGHT third slice of the 16:9 scene. Elevated observation walkway: spiral staircase leading up, railing bent outward at top, view down to main atrium floor below showing central column and corridor mouths, high ceiling six meters, teal ambient light from above, vast and empty, no people
+- **interactions**: none
+
+---
+
+### Card 144
+- **type**: SITUATION
+- **title**: AEON Core — Security Checkpoint
+- **scene_group**: AEON_CORE_CHAMBER
+- **scene_position**: LEFT
+- **default_zone**: DECK
+- **panorama_row**: 2
+- **panorama_col**: 2
+- **content_front**: "The approach corridor to the Core Chamber — a final automated security checkpoint. The door-frame scanner reads STANDBY. A placard on the wall: 'CORE ACCESS: AUTHORIZED PERSONNEL — IDENTITY CODE REQUIRED.' The keypad beneath it is lit. The checkpoint booth is empty."
+- **has_magnifying_glass**: false
+- **image_prompt**: AEON Core Chamber — LEFT third slice of the 16:9 scene. Approach corridor security checkpoint: automated door-frame scanner reading STANDBY, placard on wall with 'CORE ACCESS: AUTHORIZED PERSONNEL — IDENTITY CODE REQUIRED', lit keypad below, empty checkpoint booth, deep teal-cyan, near-black shadows, no people
+- **interactions**: none
+
+---
+
+### Card 145
+- **type**: SITUATION
+- **title**: AEON Core — Power Distribution Wall
+- **scene_group**: AEON_CORE_CHAMBER
+- **scene_position**: RIGHT
+- **default_zone**: DECK
+- **panorama_row**: 2
+- **panorama_col**: 4
+- **content_front**: "The chamber's power distribution wall. Thick conduit bundles route into a junction box labeled 'SECONDARY OVERRIDE — J-17.' A padlock that once secured the box has been cut through — the two halves lie on the floor beneath it. The box is closed but no longer locked."
+- **has_magnifying_glass**: false
+- **image_prompt**: AEON Core Chamber — RIGHT third slice of the 16:9 scene. Power distribution wall: thick conduit bundles routing into junction box labeled 'SECONDARY OVERRIDE — J-17', cut padlock halves on floor beneath it, box closed but unsecured, cyan server LED glow from chamber center, industrial detail, weight of the decision in the composition, no people
+- **interactions**: none
+
+---
+
+### Card 146
+- **type**: SITUATION
+- **title**: Medical Bay — Supply Staging
+- **scene_group**: MEDICAL_BAY
+- **scene_position**: LEFT
+- **default_zone**: DECK
+- **panorama_row**: 2
+- **panorama_col**: 3
+- **content_front**: "Medical supply staging area. Shelving holds pharmaceutical consumables, most properly stocked. One shelf section has been cleared entirely; a residue ring pattern shows where circular containers once stood. A requisition clipboard on the edge: last entry reads 'N7-HELIOS × 8 units — ADMINISTERED.'"
+- **has_magnifying_glass**: false
+- **image_prompt**: Medical Bay — LEFT third slice of the 16:9 scene. Supply staging area: pharmaceutical shelving mostly stocked, one section cleared with ring residue marks, requisition clipboard at edge with last entry 'N7-HELIOS × 8 units — ADMINISTERED', teal clinical overhead light, clinical precision and unsettling absence, no people
+- **interactions**: none
+
+---
+
+### Card 147
+- **type**: SITUATION
+- **title**: Medical Bay — Biometric Station
+- **scene_group**: MEDICAL_BAY
+- **scene_position**: RIGHT
+- **default_zone**: DECK
+- **panorama_row**: 2
+- **panorama_col**: 5
+- **content_front**: "The biometric monitoring station. Rows of patient displays, all flatlined to a resting baseline. One display has been isolated from the others — its screen shows an anomalous trace labeled 'VOSS, E.' The deviation is subtle. The timestamp is fourteen days ago."
+- **has_magnifying_glass**: false
+- **image_prompt**: Medical Bay — RIGHT third slice of the 16:9 scene. Biometric monitoring station: rows of patient displays all showing resting baseline flatlines, one display isolated with anomalous trace labeled 'VOSS, E.', timestamp fourteen days ago, teal monitor glow, clinical precision, the one deviation in an otherwise normal readout, no people
+- **interactions**: none
+
+---
+
+### Card 148
+- **type**: SITUATION
+- **title**: Emergency Exit — Staging Area
+- **scene_group**: EMERGENCY_EXIT_CORRIDOR
+- **scene_position**: LEFT
+- **default_zone**: DECK
+- **panorama_row**: 2
+- **panorama_col**: 3
+- **content_front**: "The near end of the emergency corridor — the staging area. Sealed wall containers hold oxygen masks, thermal blankets, emergency beacons. One beacon has been activated; its amber strobe pulses every three seconds. Its transmission signal is going nowhere inside the sealed facility."
+- **has_magnifying_glass**: false
+- **image_prompt**: Emergency Exit Corridor — LEFT third slice of the 16:9 scene. Near-end staging area: sealed wall containers with oxygen masks and thermal blankets, one activated emergency beacon pulsing amber strobe, long corridor extending ahead with white emergency ceiling lights, tension and futility in the activated beacon inside a sealed space, no people
+- **interactions**: none
+
+---
+
+### Card 149
+- **type**: SITUATION
+- **title**: Emergency Exit — Midpoint Junction
+- **scene_group**: EMERGENCY_EXIT_CORRIDOR
+- **scene_position**: CENTER
+- **default_zone**: DECK
+- **panorama_row**: 2
+- **panorama_col**: 4
+- **content_front**: "The corridor's midpoint. A broad painted stripe on the floor marks the blast zone perimeter. Above it, the primary antenna junction box hangs open, its interior wiring exposed. One cable end is disconnected. A red maintenance tag tied to the loose cable reads: 'DISABLED PER DIR. WEBB AUTH. W-6-ZERO.'"
+- **has_magnifying_glass**: false
+- **image_prompt**: Emergency Exit Corridor — CENTER third slice of the 16:9 scene. Midpoint junction: broad painted blast zone perimeter stripe on floor, primary antenna junction box open above with exposed wiring, disconnected cable with red maintenance tag reading 'DISABLED PER DIR. WEBB AUTH. W-6-ZERO', white emergency ceiling lights, the deliberate sabotage visible, no people
+- **interactions**: none
+
+---
+
+*End of Section 4 — Panoramic Scene Panels*
+
+*Also update existing center cards' STORY_BIBLE entries (Section 3) to add scene_group and scene_position metadata when editing the file for future passes. These fields are informational and do not affect DB columns.*

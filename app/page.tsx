@@ -81,7 +81,7 @@ function BoardView({ game }: { game: ReturnType<typeof useGameBoard> }) {
     isDeafened, setIsDeafened,
     cachedId, sensors,
     handleDragStart, handleDragEnd,
-    drawCard, drawCardByNumber, resetGame, clearStoryZone,
+    drawCard, drawCardByNumber, handleDrawSpecificCard, resetGame, clearStoryZone,
   } = game
 
   const [resetOpen, setResetOpen]       = useState(false)
@@ -367,8 +367,10 @@ function BoardView({ game }: { game: ReturnType<typeof useGameBoard> }) {
         {/* ── Story modal — auto-opens for STORY_ZONE cards, discards on close ── */}
         <StoryModal
           card={storyCard}
+          items={items}
           onClose={() => { setStoryCard(null); clearStoryZone() }}
           onDraw={game.drawCardByNumber}
+          onDrawSpecific={handleDrawSpecificCard}
         />
 
         {/* ── Toast ────────────────────────────────────────────────── */}

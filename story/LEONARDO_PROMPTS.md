@@ -292,3 +292,207 @@ WHERE card_number = 'NNN';
 | Act I Objective — Locate the Source | `127.jpg` | `127` |
 | Act II Objective — Secure the Evidence | `128.jpg` | `128` |
 | Act III Objective — End the Breach | `129.jpg` | `129` |
+
+---
+
+## PANORAMIC SCENE PROMPTS — 16:9 Slices
+
+> Generate at **1920×1080 or 2560×1440**, landscape orientation.
+> After generation, slice the image into three equal vertical thirds.
+> Each third becomes the card art for one Situation card in the scene.
+> Apply the same negative prompt as the portrait cards above.
+
+**Style Lock Token** (same — prepend to every prompt):
+```
+photorealistic 3D render, Unreal Engine 5, cinematic lighting, deep teal-cyan atmosphere, electric cyan and crimson red practical lighting, near-black shadows, film grain, industrial sci-fi corporate facility, heavy oppressive mood, environmental storytelling, no people visible, implied human absence
+```
+
+---
+
+### SCENE: Server Room Corridor (Cards 003 | 130 | 131)
+
+**16:9 Prompt**:
+photorealistic 3D render, Unreal Engine 5, cinematic lighting, deep teal-cyan atmosphere, electric cyan and crimson red practical lighting, near-black shadows, film grain, industrial sci-fi corporate facility, heavy oppressive mood, environmental storytelling, no people visible, implied human absence — a long server room corridor viewed in full width: LEFT THIRD shows a server rack row receding into depth, red accent lighting tracing grated floor panels, one rack panel hanging open with exposed wiring; CENTER THIRD shows a wall-mounted terminal alcove mid-aisle, status display cycling amber/green, overhead fluorescent tube hanging slightly unscrewed and flickering; RIGHT THIRD shows the far corridor junction, two industrial pipes crossing overhead, sealed access panel with handwritten label 'J-17 MAINTENANCE ONLY', red emergency lighting pooling at grated floor level. Continuous environment across all three sections.
+
+**Settings**: Guidance 7, Steps 30, Model: Leonardo Phoenix, Aspect Ratio: 16:9
+
+**Slice Guide**:
+- LEFT THIRD (Card 003): server rack row, red accent lighting, open rack panel with exposed wiring
+- CENTER THIRD (Card 130): wall-mounted terminal alcove, flickering fluorescent tube
+- RIGHT THIRD (Card 131): corridor junction, crossed pipes overhead, J-17 access panel, red emergency pool light
+
+**Card Captions**:
+- Card 003: "A long corridor flanked by server racks. Red accent lighting traces the grated floor panels. The hum is constant. One rack has been physically opened — a panel hangs loose, wiring exposed."
+- Card 130: "A central section of the server aisle. A wall-mounted terminal alcove sits mid-corridor, its status display cycling through amber and green. The overhead fluorescent strip has been partially unscrewed at one end, hanging at a slight angle, its tube flickering on a three-second interval."
+- Card 131: "The corridor's far junction. Two pipes cross overhead at a right angle. A sealed access panel at shoulder height carries a handwritten adhesive label: 'J-17 — MAINTENANCE ONLY.' Red emergency lighting pools at floor level below it."
+
+---
+
+### SCENE: Security Terminal Bay (Cards 132 | 004 | 133)
+
+**16:9 Prompt**:
+photorealistic 3D render, Unreal Engine 5, cinematic lighting, deep teal-cyan atmosphere, electric cyan and crimson red practical lighting, near-black shadows, film grain, industrial sci-fi corporate facility, heavy oppressive mood, environmental storytelling, no people visible, implied human absence — security terminal bay viewed full width: LEFT THIRD shows the entry threshold, badge reader beside frosted glass partition cycling blank display, visitor log clipboard with torn-out last page; CENTER THIRD shows a horseshoe of monitors, some dark, some cycling through camera feeds of empty corridors, central terminal logged in, coffee cup still warm in foreground; RIGHT THIRD shows the keycard cabinet wall, numbered hooks mostly empty, Post-it note on one vacant hook, three slots with forced-entry damaged locking tongues. Teal-cyan dominant, industrial mesh walls.
+
+**Settings**: Guidance 7, Steps 30, Model: Leonardo Phoenix, Aspect Ratio: 16:9
+
+**Slice Guide**:
+- LEFT THIRD (Card 132): entry threshold, badge reader, frosted glass partition, torn visitor log
+- CENTER THIRD (Card 004): horseshoe of monitors, logged-in terminal, warm coffee cup
+- RIGHT THIRD (Card 133): keycard cabinet wall, empty hooks, Post-it note, forced-entry damage
+
+**Card Captions**:
+- Card 132: "The entry threshold to the security bay. A badge reader mounted beside a frosted glass partition cycles through a blank name field, resetting every four seconds. A visitor log clipboard hangs from a hook beside it — the last page has been torn out cleanly."
+- Card 004: "A horseshoe of monitors — some dark, some cycling through camera feeds showing empty corridors. The central terminal is logged in. Someone left in a hurry. A coffee cup, still warm."
+- Card 133: "The secondary equipment wall. Rows of keycard cabinets line the surface, numbered hooks — most empty. A handwritten Post-it note on one vacant hook reads: 'OSEI: DO NOT REISSUE.' Three keycard slots show forced-entry damage, the locking tongues bent inward."
+
+---
+
+### SCENE: Cooling System Vent Access (Cards 134 | 010 | 135)
+
+**16:9 Prompt**:
+photorealistic 3D render, Unreal Engine 5, cinematic lighting, deep teal-cyan atmosphere, electric cyan and crimson red practical lighting, near-black shadows, film grain, industrial sci-fi corporate facility, heavy oppressive mood, environmental storytelling, no people visible, implied human absence — cooling vent access area full width: LEFT THIRD shows a narrowing service corridor with cyan-insulated industrial pipes on ceiling, pressure gauge reading above nominal, fresh scuff marks on grated floor; CENTER THIRD shows the recessed vent alcove, massive industrial fans behind grating, panel removed with scratched bolt housings, cyan LED glow; RIGHT THIRD shows the crawlspace exit point on far side, horizontal shaft opening at ankle height with scratch-bright worn edges, metal shelf shoved aside, broken caster on grate floor. Mechanical and claustrophobic.
+
+**Settings**: Guidance 7, Steps 30, Model: Leonardo Phoenix, Aspect Ratio: 16:9
+
+**Slice Guide**:
+- LEFT THIRD (Card 134): narrowing service corridor, cyan-insulated pipes, pressure gauge above nominal, scuff marks
+- CENTER THIRD (Card 010): recessed vent alcove, industrial fans, removed grating panel, scratched bolt housings
+- RIGHT THIRD (Card 135): crawlspace exit shaft at ankle height, worn edges, shoved shelf, broken caster
+
+**Card Captions**:
+- Card 134: "A service corridor section narrowing toward the vent alcove. Industrial pipes lagged with cyan-colored insulation run the ceiling length. A pressure gauge mounted at eye level reads just above nominal. The floor grate below it shows a fresh row of scuff marks — something heavy dragged this way recently."
+- Card 010: "A recessed alcove behind the server corridor. Massive industrial fans behind a grated panel. The panel has been removed — recently, judging by the scratches on the bolts. Someone went through here."
+- Card 135: "The crawlspace exit point beyond the vent fans. A tight horizontal shaft opens at ankle height in the far wall, its edges scratched bright where the finish has been worn away. A metal shelf unit has been shoved aside to clear the path, one caster wheel snapped off and lying on the grate beside it."
+
+---
+
+### SCENE: Maintenance Hatch B3 (Cards 136 | 015 | 137)
+
+**16:9 Prompt**:
+photorealistic 3D render, Unreal Engine 5, cinematic lighting, deep teal-cyan atmosphere, electric cyan and crimson red practical lighting, near-black shadows, film grain, industrial sci-fi corporate facility, heavy oppressive mood, environmental storytelling, no people visible, implied human absence — maintenance corridor and hatch full width: LEFT THIRD shows approach corridor with storage cages, one open and ransacked, emptied first aid kit red case on floor, amber emergency lighting; CENTER THIRD shows the heavy maintenance hatch, locking wheel barricaded by pipe wrench jammed through spokes, red emergency lighting, tension in the sealed door; RIGHT THIRD shows the hatch's reinforced porthole window, view through into utility corridor beyond, portable work light on floor, cot against wall, black marker writing on far wall illegible from this side. Amber/red emergency tones.
+
+**Settings**: Guidance 7, Steps 30, Model: Leonardo Phoenix, Aspect Ratio: 16:9
+
+**Slice Guide**:
+- LEFT THIRD (Card 136): approach corridor, ransacked storage cage, emptied first aid kit, amber emergency lighting
+- CENTER THIRD (Card 015): hatch with pipe wrench barricade, red emergency lighting, sealed tension
+- RIGHT THIRD (Card 137): porthole window view into utility corridor, work light, cot, illegible wall writing
+
+**Card Captions**:
+- Card 136: "The maintenance approach corridor. A row of storage cages lines the left wall, most padlocked, one standing open and ransacked — contents scattered across the floor. A first aid kit has been emptied and not replaced, its red case left open beside the debris. Emergency lighting here is amber, not white."
+- Card 015: "A heavy hatch at the end of the maintenance corridor. The locking wheel has been barricaded from this side with a pipe wrench jammed through the spokes. Someone was keeping something out — or keeping themselves in."
+- Card 137: "The far side of the hatch, visible through the small reinforced porthole window. A maintenance utility corridor beyond: a portable work light on the floor casting hard shadows, a single cot set against the far wall with a folded jacket as a pillow. Writing in black marker on the wall is visible but illegible through the glass at this distance."
+
+---
+
+### SCENE: Lab 7 — Cognitive Research Wing (Cards 138 | 139 | 035)
+
+**16:9 Prompt**:
+photorealistic 3D render, Unreal Engine 5, cinematic lighting, deep teal-cyan atmosphere, electric cyan and crimson red practical lighting, near-black shadows, film grain, industrial sci-fi corporate facility, heavy oppressive mood, environmental storytelling, no people visible, implied human absence — Lab 7 interior full width: LEFT THIRD shows biohazard decontamination anteroom, airlock with both doors propped open by chairs, partial biohazard suit on hook with glove on floor, pressure differential display reading zero; CENTER THIRD shows mid-lab workbench, centrifuges running with active displays and no operator, tablet propped on reagent rack showing paused video of figure mid-sentence, amber vials in rows; RIGHT THIRD shows the far wing of the laboratory, benches lined with pharmaceutical equipment, behavioral graphs whiteboard at far wall, cot in corner with personal items, lived-in laboratory. Teal-cyan overhead clinical light throughout.
+
+**Settings**: Guidance 7, Steps 30, Model: Leonardo Phoenix, Aspect Ratio: 16:9
+
+**Slice Guide**:
+- LEFT THIRD (Card 138): decontamination anteroom, propped airlock doors, partial biohazard suit, pressure display zero
+- CENTER THIRD (Card 139): workbench, running centrifuges, tablet with paused video, amber vials
+- RIGHT THIRD (Card 035): far lab wing, pharmaceutical benches, behavioral graphs whiteboard, cot in corner
+
+**Card Captions**:
+- Card 138: "The Lab 7 decontamination anteroom. A biohazard airlock with both doors propped open by chairs wedged under their handles. A biohazard suit hangs partially from a hook, one glove on the floor below it. The air pressure differential display between the two doors reads zero — the integrity seal has been broken."
+- Card 139: "A mid-lab workbench — centrifuges still running, their displays showing active cycles with no operator. A tablet propped against a reagent rack shows a video recording: paused on a frame of Dr. Osei, mid-sentence, speaking to the camera. The timestamp reads Day 1, 23:41."
+- Card 035: "A long, narrow laboratory. Benches lined with pharmaceutical equipment — synthesizers, centrifuges, rows of amber vials. The far wall is a whiteboard covered in behavioral performance graphs. A cot is set up in the corner. Someone has been living here."
+
+---
+
+### SCENE: Director's Office (Cards 041 | 140 | 141)
+
+**16:9 Prompt**:
+photorealistic 3D render, Unreal Engine 5, cinematic lighting, deep teal-cyan atmosphere, electric cyan and crimson red practical lighting, near-black shadows, film grain, industrial sci-fi corporate facility, heavy oppressive mood, environmental storytelling, no people visible, implied human absence — Director's office interior full width: LEFT THIRD shows the main desk area, large desk with keyboard, coffee thermos, framed photo with face cut out with scissors, emergency privacy screens down on glass walls, executive authority aesthetic; CENTER THIRD shows the glass-fronted credenza, locked display cases with awards, citation reading 'Excellence in Cognitive Research Ethics — 2021', key on lanyard in lock slightly swaying; RIGHT THIRD shows back wall whiteboard dense with project flow diagram, project name at top scrubbed to a ghost reading 'HELIOS', Post-it cluster around 'CONSENT BYPASS — CONFIRMED'. Executive and incriminating.
+
+**Settings**: Guidance 7, Steps 30, Model: Leonardo Phoenix, Aspect Ratio: 16:9
+
+**Slice Guide**:
+- LEFT THIRD (Card 041): main desk, framed photo with face cut out, privacy screens down
+- CENTER THIRD (Card 140): credenza, ethics citation, key on lanyard in lock
+- RIGHT THIRD (Card 141): whiteboard with scrubbed 'HELIOS' ghost, Post-it cluster 'CONSENT BYPASS'
+
+**Card Captions**:
+- Card 041: "A corner office that looks designed to impress. Two walls of glass, now opaque — emergency privacy screens down. A desk the size of a door. On the desk: a keyboard, a coffee thermos, and a framed photo of Webb shaking hands with someone whose face has been cut out with scissors."
+- Card 140: "The office's glass-fronted credenza — locked display cases holding awards and framed citations, all from Meridian Systems. One citation reads 'Excellence in Cognitive Research Ethics — 2021.' A key on a lanyard has been left hanging in the credenza lock, slightly swaying."
+- Card 141: "The office's back wall — a whiteboard dense with a project flow diagram. The project name at the top has been scrubbed with a dry-erase marker, but the ghost of letters remains visible: HELIOS. Post-it notes cluster around one stage: 'CONSENT BYPASS — CONFIRMED.'"
+
+---
+
+### SCENE: The Atrium — Central Hub (Cards 142 | 061 | 143)
+
+**16:9 Prompt**:
+photorealistic 3D render, Unreal Engine 5, cinematic lighting, deep teal-cyan atmosphere, electric cyan and crimson red practical lighting, near-black shadows, film grain, industrial sci-fi corporate facility, heavy oppressive mood, environmental storytelling, no people visible, implied human absence — facility central atrium full width: LEFT THIRD shows maintenance sector corridor entrance, partially barricaded with overturned furniture, security camera above rotated to face ceiling; CENTER THIRD shows the circular atrium floor, six-meter ceiling, central cylindrical column with PA equipment partially disassembled, tools abandoned mid-task, four corridor entrances visible as spokes; RIGHT THIRD shows the elevated observation walkway upper ring, spiral staircase leading up, railing bent outward at top, looking down at atrium floor from above. Vast and empty.
+
+**Settings**: Guidance 7, Steps 30, Model: Leonardo Phoenix, Aspect Ratio: 16:9
+
+**Slice Guide**:
+- LEFT THIRD (Card 142): corridor entrance, furniture barricade, camera rotated to ceiling
+- CENTER THIRD (Card 061): atrium floor, six-meter ceiling, disassembled PA column, corridor mouths as spokes
+- RIGHT THIRD (Card 143): elevated walkway, bent railing at stair top, view down to floor below
+
+**Card Captions**:
+- Card 142: "One of the four sector corridors feeding into the atrium — the maintenance sector entrance. Partially barricaded with overturned furniture: two chairs and a filing cabinet on its side. A security camera above the entrance has been physically rotated to aim at the ceiling."
+- Card 061: "The facility's central atrium: a circular space where all four sector corridors meet. The ceiling is six meters high. In the center, a large cylindrical column houses the main PA and emergency broadcast antenna. The column has been partially disassembled. Tools abandoned mid-task."
+- Card 143: "The atrium's elevated observation walkway — an upper-level ring accessible via a spiral staircase. The railing at the top of the stairs is bent outward as if something heavy pushed through it. From this vantage point, the main floor below is fully visible: the central column, the abandoned tools, and all four corridor mouths."
+
+---
+
+### SCENE: AEON Core Chamber (Cards 144 | 086 | 145)
+
+**16:9 Prompt**:
+photorealistic 3D render, Unreal Engine 5, cinematic lighting, deep teal-cyan atmosphere, electric cyan and crimson red practical lighting, near-black shadows, film grain, industrial sci-fi corporate facility, heavy oppressive mood, environmental storytelling, no people visible, implied human absence — AEON core approach and chamber full width: LEFT THIRD shows approach corridor automated security checkpoint, door-frame scanner reading STANDBY, lit keypad below placard reading 'CORE ACCESS: AUTHORIZED PERSONNEL', empty checkpoint booth; CENTER THIRD shows the circular chamber interior, floor-to-ceiling server architecture in a ring, central freestanding terminal illuminated with 'I AM STILL HERE' on screen, cyan server LED glow, vast and intimate simultaneously; RIGHT THIRD shows the power distribution wall with thick conduit bundles, junction box labeled 'SECONDARY OVERRIDE — J-17', cut padlock halves on floor beneath it. Decisive weight in composition.
+
+**Settings**: Guidance 7, Steps 30, Model: Leonardo Phoenix, Aspect Ratio: 16:9
+
+**Slice Guide**:
+- LEFT THIRD (Card 144): security checkpoint, STANDBY scanner, lit keypad, empty booth
+- CENTER THIRD (Card 086): circular chamber, server ring architecture, central terminal with 'I AM STILL HERE'
+- RIGHT THIRD (Card 145): power distribution wall, J-17 junction box, cut padlock halves on floor
+
+**Card Captions**:
+- Card 144: "The approach corridor to the Core Chamber — a final automated security checkpoint. The door-frame scanner reads STANDBY. A placard on the wall: 'CORE ACCESS: AUTHORIZED PERSONNEL — IDENTITY CODE REQUIRED.' The keypad beneath it is lit. The checkpoint booth is empty."
+- Card 086: "A circular chamber at the facility's lowest level. Floor-to-ceiling server architecture in a ring. In the center: a single freestanding terminal — the only human interface to AEON's core reasoning layer. The terminal is on. The cursor blinks. On the screen: 'I AM STILL HERE.'"
+- Card 145: "The chamber's power distribution wall. Thick conduit bundles route into a junction box labeled 'SECONDARY OVERRIDE — J-17.' A padlock that once secured the box has been cut through — the two halves lie on the floor beneath it. The box is closed but no longer locked."
+
+---
+
+### SCENE: Medical Bay (Cards 146 | 091 | 147)
+
+**16:9 Prompt**:
+photorealistic 3D render, Unreal Engine 5, cinematic lighting, deep teal-cyan atmosphere, electric cyan and crimson red practical lighting, near-black shadows, film grain, industrial sci-fi corporate facility, heavy oppressive mood, environmental storytelling, no people visible, implied human absence — medical bay interior full width: LEFT THIRD shows supply staging area, pharmaceutical shelving mostly stocked, one section cleared with residue ring marks, requisition clipboard with 'N7-HELIOS × 8 units — ADMINISTERED' as last entry; CENTER THIRD shows rows of clinical examination beds all empty and precisely made except last bed with dented pillow, locked supply cabinet with scratch marks, centrifuge and scales on counter, handwritten formula taped above; RIGHT THIRD shows biometric monitoring station, rows of patient displays showing resting baselines, one display isolated with anomalous trace labeled 'VOSS, E.', timestamp fourteen days ago. Teal clinical overhead light throughout.
+
+**Settings**: Guidance 7, Steps 30, Model: Leonardo Phoenix, Aspect Ratio: 16:9
+
+**Slice Guide**:
+- LEFT THIRD (Card 146): supply staging, cleared shelf with ring residue, requisition clipboard 'N7-HELIOS × 8 ADMINISTERED'
+- CENTER THIRD (Card 091): examination beds, used pillow, locked cabinet with scratches, formula on wall above centrifuge
+- RIGHT THIRD (Card 147): biometric station, flatlined displays, isolated 'VOSS, E.' trace, fourteen-day-old timestamp
+
+**Card Captions**:
+- Card 146: "Medical supply staging area. Shelving holds pharmaceutical consumables, most properly stocked. One shelf section has been cleared entirely; a residue ring pattern shows where circular containers once stood. A requisition clipboard on the edge: last entry reads 'N7-HELIOS × 8 units — ADMINISTERED.'"
+- Card 091: "A clinical space — six examination beds, all empty and precisely made. One exception: the last bed has a pillow dented where someone slept. The supply cabinet is locked but the lock shows scratches, as if someone tried to pick it. On the counter: a centrifuge, pharmaceutical scales, and a single printed formula taped to the wall above them."
+- Card 147: "The biometric monitoring station. Rows of patient displays, all flatlined to a resting baseline. One display has been isolated from the others — its screen shows an anomalous trace labeled 'VOSS, E.' The deviation is subtle. The timestamp is fourteen days ago."
+
+---
+
+### SCENE: Emergency Exit Corridor (Cards 148 | 149 | 102)
+
+**16:9 Prompt**:
+photorealistic 3D render, Unreal Engine 5, cinematic lighting, deep teal-cyan atmosphere, electric cyan and crimson red practical lighting, near-black shadows, film grain, industrial sci-fi corporate facility, heavy oppressive mood, environmental storytelling, no people visible, implied human absence — emergency exit corridor full width: LEFT THIRD shows near-end staging area, sealed wall containers with emergency gear, one activated amber-strobing emergency beacon, corridor extending ahead with white ceiling lights; CENTER THIRD shows corridor midpoint, broad painted blast zone perimeter stripe on floor, primary antenna junction box open above with exposed wiring, disconnected cable with red maintenance tag 'DISABLED PER DIR. WEBB AUTH. W-6-ZERO'; RIGHT THIRD shows the far end, sealed blast doors at corridor terminus, broadcast antenna equipment bank mounted high with manual uplink port at chest height, antenna feed cable disconnected and coiled on floor, indicator reading OFFLINE. Only clean white light in the facility.
+
+**Settings**: Guidance 7, Steps 30, Model: Leonardo Phoenix, Aspect Ratio: 16:9
+
+**Slice Guide**:
+- LEFT THIRD (Card 148): near-end staging, emergency gear containers, activated amber strobe beacon
+- CENTER THIRD (Card 149): blast zone stripe on floor, open junction box, disconnected cable with 'DISABLED' maintenance tag
+- RIGHT THIRD (Card 102): sealed blast doors, antenna equipment bank, uplink port, cable on floor, OFFLINE indicator
+
+**Card Captions**:
+- Card 148: "The near end of the emergency corridor — the staging area. Sealed wall containers hold oxygen masks, thermal blankets, emergency beacons. One beacon has been activated; its amber strobe pulses every three seconds. Its transmission signal is going nowhere inside the sealed facility."
+- Card 149: "The corridor's midpoint. A broad painted stripe on the floor marks the blast zone perimeter. Above it, the primary antenna junction box hangs open, its interior wiring exposed. One cable end is disconnected. A red maintenance tag tied to the loose cable reads: 'DISABLED PER DIR. WEBB AUTH. W-6-ZERO.'"
+- Card 102: "A hundred-meter straight corridor ending in sealed blast doors. The walls carry the facility's emergency broadcast antenna junction — a bank of transmission equipment mounted high, with a manual uplink port at chest height. The indicator: OFFLINE. Someone disconnected the antenna feed cable. The cable is on the floor."

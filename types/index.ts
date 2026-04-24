@@ -50,6 +50,13 @@ export interface GameAsset {
   // Objective / chapter
   objective_chapter: number | null           // which act this objective belongs to (1 | 2 | 3)
   is_scenario_card: boolean                  // stays on top of deck always
+
+  // Story card draw actions — structured buttons rendered below card text
+  draw_actions: Array<{
+    label: string
+    card_number: string
+    target_zone: 'PANORAMA' | 'PLAYER_AREA' | 'OBJECTIVE' | 'DISCARD'
+  }> | null
 }
 
 export interface CardPosition {

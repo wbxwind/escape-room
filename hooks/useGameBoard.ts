@@ -27,6 +27,7 @@ export interface GameBoardState {
   handleDragEnd: (e: DragEndEvent) => Promise<void>
   drawCard: () => Promise<void>
   drawCardByNumber: (cardNumber: string) => Promise<void>
+  handleDrawSpecificCard: (cardNumber: string, targetZone: 'PANORAMA' | 'PLAYER_AREA' | 'OBJECTIVE' | 'DISCARD') => Promise<void>
   resetGame: () => Promise<void>
   clearStoryZone: () => Promise<void>
   consequenceLog: ConsequenceEvent[]
@@ -378,6 +379,30 @@ export function useGameBoard(): GameBoardState {
     setToast(`Drew: ${card.title || `Card #${card.card_number}`}`)
   }, [items, moveAsset, clearStoryZone])
 
+  /** Move a specific card (by card_number) from DECK to the given target zone.
+   *  If already out of DECK, does nothing — caller shows disabled state. */
+  const handleDrawSpecificCard = useCallback(async (
+    cardNumber: string,
+    targetZone: 'PANORAMA' | 'PLAYER_AREA' | 'OBJECTIVE' | 'DISCARD',
+  ) => {
+    const card = items.find(i => i.card_number === cardNumber && i.current_zone === 'DECK')
+    if (!card) return
+
+    let slot: number | null = null
+    if (targetZone === 'PANORAMA') {
+      const usedSlots = new Set(
+        items
+          .filter(i => i.current_zone === 'PANORAMA' && i.panorama_slot != null)
+          .map(i => i.panorama_slot as number)
+      )
+      for (let s = 1; s <= 10; s++) {
+        if (!usedSlots.has(s)) { slot = s; break }
+      }
+    }
+
+    await moveAsset(card.state_id, targetZone, slot)
+  }, [items, moveAsset])
+
   const resetGame = useCallback(async () => {
     if (!roomCode) return
     // Delete all card_positions for this room — cards revert to their default_zone
@@ -528,7 +553,7 @@ export function useGameBoard(): GameBoardState {
     isDeafened, setIsDeafened,
     cachedId, liveKitToken, liveKitUrl,
     sensors, handleDragStart, handleDragEnd,
-    drawCard, drawCardByNumber, resetGame, clearStoryZone,
+    drawCard, drawCardByNumber, handleDrawSpecificCard, resetGame, clearStoryZone,
     consequenceLog,
   }
 }

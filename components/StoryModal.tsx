@@ -1,13 +1,15 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect } from 'react'
 import type { JoinedAsset } from '@/types'
 
 interface StoryModalProps {
   card: JoinedAsset | null
+  items: JoinedAsset[]
   onClose: () => void
   onContinue?: () => void
   onDraw?: (cardNumber: string) => Promise<void>
+  onDrawSpecific?: (cardNumber: string, targetZone: 'PANORAMA' | 'PLAYER_AREA' | 'OBJECTIVE' | 'DISCARD') => Promise<void>
 }
 
 // ── Text parser ───────────────────────────────────────────────────────────────
@@ -128,9 +130,112 @@ function StoryText({
   )
 }
 
+// ── Structured draw actions panel ────────────────────────────────────────────
+
+function DrawActionsPanel({
+  card,
+  items,
+  onDrawSpecific,
+  onClose,
+}: {
+  card: JoinedAsset
+  items: JoinedAsset[]
+  onDrawSpecific: (cardNumber: string, targetZone: 'PANORAMA' | 'PLAYER_AREA' | 'OBJECTIVE' | 'DISCARD') => Promise<void>
+  onClose: () => void
+}) {
+  const actions = card.draw_actions
+  if (!actions || actions.length === 0) return null
+
+  const allExecuted = actions.every(a => {
+    const target = items.find(i => i.card_number === a.card_number)
+    return !target || target.current_zone !== 'DECK'
+  })
+
+  return (
+    <div
+      className="border-t border-[rgba(99,102,241,0.2)]"
+      style={{ padding: '14px 20px', display: 'flex', flexDirection: 'column', gap: '8px' }}
+    >
+      <div className="font-mono uppercase tracking-widest text-indigo-400/50" style={{ fontSize: '9px', marginBottom: '2px' }}>
+        Actions
+      </div>
+      {actions.map(action => {
+        const target = items.find(i => i.card_number === action.card_number)
+        const alreadyInPlay = !target || target.current_zone !== 'DECK'
+        return (
+          <StructuredDrawButton
+            key={action.card_number}
+            label={action.label}
+            alreadyInPlay={alreadyInPlay}
+            onExecute={() => onDrawSpecific(action.card_number, action.target_zone)}
+          />
+        )
+      })}
+      {allExecuted && (
+        <button
+          onClick={onClose}
+          className="rounded-lg font-semibold transition-colors"
+          style={{
+            marginTop: '4px',
+            padding: '8px 16px',
+            fontSize: '12px',
+            background: 'rgba(201,162,39,0.15)',
+            border: '1px solid rgba(201,162,39,0.35)',
+            color: '#fbbf24',
+            cursor: 'pointer',
+          }}
+        >
+          ✓ All done — Move to Discard
+        </button>
+      )}
+    </div>
+  )
+}
+
+function StructuredDrawButton({
+  label,
+  alreadyInPlay,
+  onExecute,
+}: {
+  label: string
+  alreadyInPlay: boolean
+  onExecute: () => Promise<void>
+}) {
+  const [loading, setLoading] = useState(false)
+  const [done, setDone] = useState(alreadyInPlay)
+
+  useEffect(() => { setDone(alreadyInPlay) }, [alreadyInPlay])
+
+  async function handle() {
+    if (done || loading) return
+    setLoading(true)
+    await onExecute()
+    setLoading(false)
+    setDone(true)
+  }
+
+  return (
+    <button
+      onClick={handle}
+      disabled={done || loading}
+      className="w-full text-left rounded-lg font-semibold transition-all"
+      style={{
+        padding: '7px 12px',
+        fontSize: '12px',
+        background: done ? 'rgba(34,197,94,0.1)' : loading ? 'rgba(99,102,241,0.15)' : 'rgba(99,102,241,0.2)',
+        border: done ? '1px solid rgba(34,197,94,0.3)' : '1px solid rgba(165,180,252,0.25)',
+        color: done ? '#86efac' : '#c7d2fe',
+        cursor: done ? 'default' : 'pointer',
+      }}
+    >
+      {done ? `✓ ${label}` : loading ? '…' : `▶ ${label}`}
+    </button>
+  )
+}
+
 // ── Main modal ────────────────────────────────────────────────────────────────
 
-export function StoryModal({ card, onClose, onContinue, onDraw }: StoryModalProps) {
+export function StoryModal({ card, items, onClose, onContinue, onDraw, onDrawSpecific }: StoryModalProps) {
   const [showBack, setShowBack] = useState(false)
 
   useEffect(() => {
@@ -141,6 +246,7 @@ export function StoryModal({ card, onClose, onContinue, onDraw }: StoryModalProp
 
   const hasBack = Boolean(card.content_back)
   const bodyText = (showBack ? card.content_back : card.content_front) ?? ''
+  const hasDrawActions = Array.isArray(card.draw_actions) && card.draw_actions.length > 0
 
   function handleContinue() {
     setShowBack(true)
@@ -196,6 +302,16 @@ export function StoryModal({ card, onClose, onContinue, onDraw }: StoryModalProp
           )}
           <StoryText text={bodyText} onDraw={onDraw} />
         </div>
+
+        {/* Structured draw actions panel */}
+        {hasDrawActions && onDrawSpecific && (
+          <DrawActionsPanel
+            card={card}
+            items={items}
+            onDrawSpecific={onDrawSpecific}
+            onClose={onClose}
+          />
+        )}
 
         {/* Footer */}
         <div
