@@ -13,6 +13,13 @@ function seedAngle(id: string): number {
   return ((h % 600) - 300) / 100
 }
 
+/** Append cache-buster version to image URLs. Bump NEXT_PUBLIC_IMG_V in .env.local after replacing storage files. */
+function imgSrc(url: string | null | undefined): string | undefined {
+  if (!url) return undefined
+  const v = process.env.NEXT_PUBLIC_IMG_V
+  return v ? `${url}?v=${v}` : url
+}
+
 /** Pick a repeating SVG pattern variant (0–3) seeded from card number. */
 function seedPattern(n: string | null): number {
   let h = 0
@@ -147,7 +154,7 @@ function CharacterCard({ asset, enlarged }: { asset: JoinedAsset; enlarged: bool
   return (
     <>
       {asset.image_url
-        ? <img src={asset.image_url} alt={asset.title} className="absolute inset-0 w-full h-full object-cover object-top" />
+        ? <img src={imgSrc(asset.image_url)} alt={asset.title} className="absolute inset-0 w-full h-full object-cover object-top" />
         : <CharacterPlaceholder title={asset.title} />
       }
       <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent z-10 pointer-events-none" />
@@ -225,14 +232,13 @@ function SituationCard({ asset, enlarged = false }: { asset: JoinedAsset; enlarg
   return (
     <>
       {asset.image_url ? (
-        <div className="absolute inset-0 z-0">
-          <img src={asset.image_url} alt={asset.title} className="w-full h-[58%] object-cover object-center" />
-          <div className="absolute top-0 left-0 right-0 h-[58%] bg-gradient-to-b from-transparent to-[rgba(28,14,5,0.7)]" />
-        </div>
+        <>
+          <img src={imgSrc(asset.image_url)} alt={asset.title} className="absolute inset-0 w-full h-full object-cover object-center z-0" />
+          <div className="absolute inset-0 z-0 pointer-events-none" style={{ background: 'linear-gradient(to bottom, rgba(0,0,0,0.15) 0%, transparent 35%, rgba(10,6,2,0.75) 65%, rgba(10,6,2,0.95) 100%)' }} />
+        </>
       ) : (
         <SituationPlaceholder title={asset.title} pattern={p} />
       )}
-      <div className="absolute bottom-0 left-0 right-0 h-[44%] bg-gradient-to-t from-[#1e1308] to-transparent z-0 pointer-events-none" />
 
       {/* Card number badge */}
       <div className="absolute top-0 left-0 z-20">
@@ -345,7 +351,7 @@ function StoryCard({ asset, enlarged = false }: { asset: JoinedAsset; enlarged?:
           backgroundSize: p % 2 === 0 ? '9cqi 9cqi' : '7cqi 7cqi',
         }} />
         {asset.image_url && (
-          <img src={asset.image_url} alt="" className="absolute inset-0 w-full h-full object-cover opacity-20" />
+          <img src={imgSrc(asset.image_url)} alt="" className="absolute inset-0 w-full h-full object-cover opacity-20" />
         )}
       </div>
 
@@ -400,7 +406,7 @@ function IssueCard({ asset, enlarged = false }: { asset: JoinedAsset; enlarged?:
           style={{ left: '12cqi', width: '0.5cqi', background: 'rgba(180,80,30,0.5)' }}
         />
         {asset.image_url && (
-          <img src={asset.image_url} alt="" className="absolute inset-0 w-full h-full object-cover opacity-15" />
+          <img src={imgSrc(asset.image_url)} alt="" className="absolute inset-0 w-full h-full object-cover opacity-15" />
         )}
       </div>
 
@@ -662,7 +668,7 @@ function EndingCard({ asset, enlarged = false }: { asset: JoinedAsset; enlarged?
     <>
       <div className="absolute inset-0" style={{ background: 'linear-gradient(160deg, #3d0505 0%, #1f0303 100%)' }}>
         {asset.image_url
-          ? <img src={asset.image_url} alt={asset.title} className="absolute inset-0 w-full h-full object-cover opacity-35" />
+          ? <img src={imgSrc(asset.image_url)} alt={asset.title} className="absolute inset-0 w-full h-full object-cover opacity-35" />
           : <EndingPattern />
         }
       </div>

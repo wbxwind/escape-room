@@ -16,7 +16,11 @@
       "mcp__supabase__get_advisors",
       "mcp__supabase__list_tables",
       "Bash(python3 *)",
-      "mcp__ide__getDiagnostics"
+      "mcp__ide__getDiagnostics",
+      "Bash(magick --version)",
+      "Bash(convert --version)",
+      "Bash(python *)",
+      "Bash(pip install *)"
     ]
   },
   "enableAllProjectMcpServers": true,
