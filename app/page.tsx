@@ -79,7 +79,7 @@ function BoardView({ game }: { game: ReturnType<typeof useGameBoard> }) {
     availableRooms, roomParticipants,
     isMicMuted, setIsMicMuted,
     isDeafened, setIsDeafened,
-    cachedId, sensors,
+    cachedId, liveKitToken, joinVoice, disconnectVoice, sensors,
     handleDragStart, handleDragEnd,
     drawCard, drawCardByNumber, handleDrawSpecificCard, resetGame, clearStoryZone,
   } = game
@@ -230,6 +230,9 @@ function BoardView({ game }: { game: ReturnType<typeof useGameBoard> }) {
               isDeafened={isDeafened}
               setIsDeafened={val => { setIsDeafened(val); localStorage.setItem('backstories-deafened', String(val)) }}
               cachedId={cachedId}
+              isVoiceConnected={!!liveKitToken}
+              onJoinVoice={joinVoice}
+              onDisconnectVoice={disconnectVoice}
             />
           </aside>
 

@@ -1,10 +1,12 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { useParticipants, useLocalParticipant, TrackMutedIndicator } from '@livekit/components-react'
 import { Track } from 'livekit-client'
 import { supabase } from '@/lib/supabase'
 import { MicIcon, MicOffIcon, AudioIcon, AudioOffIcon } from '@/components/icons'
+
+const SILENCE_TIMEOUT_MS = 5 * 60 * 1000
 
 interface VoiceHUDProps {
   isMicMuted: boolean
@@ -12,18 +14,69 @@ interface VoiceHUDProps {
   isDeafened: boolean
   setIsDeafened: (val: boolean) => void
   cachedId: string | null
+  isVoiceConnected: boolean
+  onJoinVoice: () => Promise<void>
+  onDisconnectVoice: () => void
 }
 
-export function VoiceHUD({ isMicMuted, setIsMicMuted, isDeafened, setIsDeafened, cachedId }: VoiceHUDProps) {
+export function VoiceHUD(props: VoiceHUDProps) {
+  const { isVoiceConnected, onJoinVoice } = props
+
+  return (
+    <div className="mt-auto w-full bg-black/40 border-t border-white/5 p-4 flex flex-col gap-3">
+      <h3 className="text-[10px] font-mono tracking-widest text-emerald-500/80 mb-2 uppercase flex items-center gap-2">
+        <div className={`w-2 h-2 rounded-full ${isVoiceConnected ? 'bg-emerald-500 animate-pulse' : 'bg-zinc-600'}`} />
+        Voice Comms
+      </h3>
+
+      {isVoiceConnected
+        ? <ConnectedVoicePanel {...props} />
+        : (
+          <button
+            onClick={onJoinVoice}
+            className="w-full py-2 rounded text-[11px] font-mono tracking-wider text-emerald-300 bg-emerald-900/30 hover:bg-emerald-900/50 border border-emerald-500/20 hover:border-emerald-500/40 transition-colors"
+          >
+            Join Voice
+          </button>
+        )
+      }
+    </div>
+  )
+}
+
+// Only rendered when inside <LiveKitRoom> — safe to use LiveKit hooks here
+function ConnectedVoicePanel({
+  isMicMuted, setIsMicMuted,
+  isDeafened, setIsDeafened,
+  cachedId, onDisconnectVoice,
+}: VoiceHUDProps) {
   const participants = useParticipants()
   const { localParticipant } = useLocalParticipant()
 
-  // Keep hardware mic state in sync with React state across unmounts/reconnects
+  // Keep hardware mic in sync
   useEffect(() => {
     if (!localParticipant) return
     if (localParticipant.isMicrophoneEnabled === !isMicMuted) return
     localParticipant.setMicrophoneEnabled(!isMicMuted).catch(console.error)
   }, [localParticipant, isMicMuted])
+
+  // Silence auto-disconnect
+  const lastActivityRef = useRef(Date.now())
+  const anySpeaking = participants.some(p => p.isSpeaking) || (localParticipant?.isSpeaking ?? false)
+
+  useEffect(() => {
+    if (anySpeaking) lastActivityRef.current = Date.now()
+  }, [anySpeaking])
+
+  useEffect(() => {
+    lastActivityRef.current = Date.now()
+    const timer = setInterval(() => {
+      if (Date.now() - lastActivityRef.current >= SILENCE_TIMEOUT_MS) {
+        onDisconnectVoice()
+      }
+    }, 60_000)
+    return () => clearInterval(timer)
+  }, [onDisconnectVoice])
 
   const handleMuteToggle = async () => {
     const next = !isMicMuted
@@ -38,15 +91,8 @@ export function VoiceHUD({ isMicMuted, setIsMicMuted, isDeafened, setIsDeafened,
     await supabase.from('room_participants').update({ is_deafened: next }).eq('user_id', cachedId)
   }
 
-  const isActive = !isMicMuted && !isDeafened
-
   return (
-    <div className="mt-auto w-full bg-black/40 border-t border-white/5 p-4 flex flex-col gap-3">
-      <h3 className="text-[10px] font-mono tracking-widest text-emerald-500/80 mb-2 uppercase flex items-center gap-2">
-        <div className={`w-2 h-2 rounded-full ${isActive ? 'bg-emerald-500 animate-pulse' : 'bg-rose-500'}`} />
-        Voice Comms
-      </h3>
-
+    <>
       <div className="flex flex-col gap-2 max-h-[120px] overflow-y-auto pr-1 custom-scrollbar">
         {participants.map(p => {
           const isMe = p.identity === localParticipant?.identity
@@ -86,15 +132,21 @@ export function VoiceHUD({ isMicMuted, setIsMicMuted, isDeafened, setIsDeafened,
         <VoiceButton active={isDeafened} onClick={handleDeafenToggle}>
           {isDeafened ? <AudioOffIcon className="w-3 h-3 text-rose-300" /> : <AudioIcon className="w-3 h-3 text-zinc-300" />}
         </VoiceButton>
+        <VoiceButton active={false} onClick={onDisconnectVoice} title="Disconnect from voice">
+          <span className="text-[9px] font-mono text-rose-400 leading-none">END</span>
+        </VoiceButton>
       </div>
-    </div>
+    </>
   )
 }
 
-function VoiceButton({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
+function VoiceButton({ active, onClick, children, title }: {
+  active: boolean; onClick: () => void; children: React.ReactNode; title?: string
+}) {
   return (
     <button
       onClick={onClick}
+      title={title}
       className={`flex-1 transition-colors py-1.5 rounded flex items-center justify-center
         ${active
           ? 'bg-rose-900/40 hover:bg-rose-900/60 border border-rose-500/20'

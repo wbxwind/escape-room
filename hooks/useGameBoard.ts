@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useSensors, useSensor, PointerSensor, TouchSensor, type DragEndEvent, type DragStartEvent } from '@dnd-kit/core'
 import { supabase } from '@/lib/supabase'
 import { JoinedAsset, CardPosition, RoomParticipant, ConsequenceEvent, PANORAMA_TYPES, ACTION_TYPES, OBJECTIVE_TYPES, OBJECTIVE_ZONE_TYPES, resolveCardType } from '@/types'
@@ -22,6 +22,8 @@ export interface GameBoardState {
   cachedId: string | null
   liveKitToken: string | null
   liveKitUrl: string | null
+  joinVoice: () => Promise<void>
+  disconnectVoice: () => void
   sensors: ReturnType<typeof useSensors>
   handleDragStart: (e: DragStartEvent) => void
   handleDragEnd: (e: DragEndEvent) => Promise<void>
@@ -77,6 +79,9 @@ export function useGameBoard(): GameBoardState {
   const [liveKitToken, setLiveKitToken]         = useState<string | null>(null)
   const [liveKitUrl, setLiveKitUrl]             = useState<string | null>(null)
   const [consequenceLog, setConsequenceLog]     = useState<ConsequenceEvent[]>([])
+
+  const cachedIdRef   = useRef<string | null>(null)
+  const cachedNameRef = useRef<string | null>(null)
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -152,6 +157,8 @@ export function useGameBoard(): GameBoardState {
         localStorage.setItem('backstories-id',   cid)
         localStorage.setItem('backstories-name', cname)
         setCachedId(cid)
+        cachedIdRef.current   = cid
+        cachedNameRef.current = cname
 
         const savedMute   = localStorage.getItem('backstories-mic-muted') === 'true'
         const savedDeafen = localStorage.getItem('backstories-deafened')  === 'true'
@@ -168,7 +175,7 @@ export function useGameBoard(): GameBoardState {
         }
         window.addEventListener('beforeunload', handleUnload)
 
-        // LiveKit token
+        // Auto-connect voice on room join
         try {
           const res  = await fetch('/api/get-voice-token', {
             method: 'POST',
@@ -421,6 +428,39 @@ export function useGameBoard(): GameBoardState {
     setToast('Game reset — all cards returned to the deck.')
   }, [roomCode])
 
+  const joinVoice = useCallback(async () => {
+    const cid   = cachedIdRef.current
+    const cname = cachedNameRef.current
+    if (!cid || !cname || !roomCode) return
+    try {
+      const res  = await fetch('/api/get-voice-token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ roomCode, participantId: cid, participantName: cname }),
+      })
+      const data = await res.json()
+      if (data.token) {
+        setLiveKitToken(data.token)
+        setLiveKitUrl(process.env.NEXT_PUBLIC_LIVEKIT_URL ?? null)
+      }
+    } catch (e) {
+      console.error('LiveKit token fetch failed:', e)
+    }
+  }, [roomCode])
+
+  const disconnectVoice = useCallback(() => {
+    setLiveKitToken(null)
+    setLiveKitUrl(null)
+    const uid = cachedIdRef.current
+    if (uid) {
+      fetch('/api/leave-room', {
+        method: 'POST', keepalive: true,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: uid }),
+      }).catch(console.error)
+    }
+  }, [])
+
   const handleDragStart = useCallback((e: DragStartEvent) => {
     setActiveId(e.active.id as string)
     // Dismiss any sticky interaction toast when the player picks up a new card
@@ -551,7 +591,7 @@ export function useGameBoard(): GameBoardState {
     availableRooms, roomParticipants,
     isMicMuted, setIsMicMuted,
     isDeafened, setIsDeafened,
-    cachedId, liveKitToken, liveKitUrl,
+    cachedId, liveKitToken, liveKitUrl, joinVoice, disconnectVoice,
     sensors, handleDragStart, handleDragEnd,
     drawCard, drawCardByNumber, handleDrawSpecificCard, resetGame, clearStoryZone,
     consequenceLog,
